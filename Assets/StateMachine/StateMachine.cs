@@ -4,50 +4,50 @@ using UnityEngine;
 
 public abstract class StateMachine : MonoBehaviour
 {
-    protected BaseState currentState;
-    protected BaseState queuedState = null;
+    protected BaseState CurrentState;
+    protected BaseState QueuedState = null;
     protected bool isTransitioningState = false;
     private void Start()
     {
-        currentState.EnterState();
+        CurrentState.EnterState();
     }
     private void Update()
     {
-        currentState.UpdateState();
-        if (!isTransitioningState && queuedState != null)
+        CurrentState.UpdateState();
+        if (!isTransitioningState && QueuedState != null)
         {
-            TransitionToState(queuedState);
-            queuedState = null;
+            TransitionToState(QueuedState);
+            QueuedState = null;
         }
     }
 
     public void QueueNextState(BaseState nextState)
     {
-        queuedState = nextState;
+        QueuedState = nextState;
     }
 
     public void TransitionToState(BaseState nextState)
     {
         isTransitioningState = true;
-        currentState.ExitState();
-        currentState = nextState;
-        currentState.EnterState();
+        CurrentState.ExitState();
+        CurrentState = nextState;
+        CurrentState.EnterState();
         isTransitioningState = false;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        currentState.OnTriggerEnter(other);
+        CurrentState.OnTriggerEnter(other);
     }
 
     void OnTriggerStay(Collider other)
     {
-        currentState.OnTriggerStay(other);
+        CurrentState.OnTriggerStay(other);
 
     }
 
     void OnTriggerExit(Collider other)
     {
-        currentState.OnTriggerExit(other);
+        CurrentState.OnTriggerExit(other);
     }
 }

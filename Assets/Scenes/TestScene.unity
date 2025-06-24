@@ -939,8 +939,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   _minCastDistance: 0.02
+  _boxHalfExtents: {x: 0.5, y: 1, z: 0.5}
+  _settings: {fileID: 11400000, guid: 0ca81101c39fc4c409ef70aa8bb632d0, type: 2}
   _skinWidth: 0.02
-  _boxHalfExtents: {x: 0.48, y: 0.98, z: 0.48}
   _horizontalVelocityVec: {x: 0, y: 0, z: 0}
   _verticalVelocityVec: {x: 0, y: 0, z: 0}
 --- !u!114 &1983523205
@@ -974,13 +975,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 938cad2731fed34479cfe4a113b662ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _innerOffset: 0.24
-  _outerOffset: 0.48
+  _innerOffset: 0.25
+  _outerOffset: 0.5
   _layerMask:
     serializedVersion: 2
     m_Bits: 64
-  _castOffset: {x: 0, y: 0.98, z: 0}
+  _castOffset: {x: 0, y: 1, z: 0}
   _pushDistance: 0.3
+  _settings: {fileID: 11400000, guid: 0ca81101c39fc4c409ef70aa8bb632d0, type: 2}
+  _skinWidth: 0.02
   _leftOuter: 0
   _leftInner: 0
   _rightInner: 0

@@ -2,17 +2,32 @@ using UnityEngine;
 
 public class PushOffOverhang : MonoBehaviour
 {
-    [SerializeField] private float _innerOffset = 0.23f;
-    [SerializeField] private float _outerOffset = 0.48f;
+    [SerializeField] private float _innerOffset = 0.25f;
+    [SerializeField] private float _outerOffset = 0.5f;
     [SerializeField] private LayerMask _layerMask;
-    [SerializeField] private Vector3 _castOffset = new Vector3(0f, 0.98f, 0f);
+    [SerializeField] private Vector3 _castOffset = new Vector3(0f, 0.1f, 0f);
     [SerializeField] private float _pushDistance = 0.25f; // How far to push the player
+    [SerializeField] private GlobalPhysicsSettings _settings;
+    [SerializeField] private float _skinWidth = 0.02f; // Default skin width
 
     [Header("Debug Info")]
     [SerializeField] private bool _leftOuter = false;
     [SerializeField] private bool _leftInner = false;
     [SerializeField] private bool _rightInner = false;
     [SerializeField] private bool _rightOuter = false;
+
+    private void Awake()
+    {
+        if (_settings != null)
+        {
+            _skinWidth = _settings.skinWidth;
+        }
+        else
+        {
+            Debug.LogWarning($"GlobalPhysicsSettings not assigned! Using default skin width of {_skinWidth}");
+        }
+        _castOffset -= new Vector3(_skinWidth, _skinWidth, _skinWidth); // Adjust cast offset to account for skin width
+    }
 
     public void TryPushOffLedge(float velocity, float deltaTime)
     {
@@ -21,7 +36,7 @@ public class PushOffOverhang : MonoBehaviour
         if (verticalMove <= 0f) return;
 
         Vector3 origin = transform.position + _castOffset;
-        float distance = Mathf.Abs(verticalMove);
+        float distance = Mathf.Abs(verticalMove) + _skinWidth;
 
         // Cast upward from four positions: left outer, left inner, right inner, right outer
         _leftOuter = Physics.Raycast(origin + new Vector3(-_outerOffset, 0f, 0f), Vector3.up, distance, _layerMask);

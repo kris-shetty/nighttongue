@@ -9,20 +9,33 @@ public class NaiveCharacterCollisionResolver : MonoBehaviour
     [Header("Common Settings")]
     [SerializeField] private LayerMask _layer;
     [SerializeField] private float _minCastDistance = 0.02f;
+    [SerializeField] private Vector3 _boxHalfExtents = new Vector3(0.5f, 1f, 0.5f);
+    [SerializeField] private GlobalPhysicsSettings _settings;
     [SerializeField] private float _skinWidth = 0.02f;
-    [SerializeField] private Vector3 _boxHalfExtents = new Vector3(0.48f, 0.98f, 0.48f);
 
     [Header("Debug Settings")]
     [SerializeField] private Vector3 _horizontalVelocityVec;
     [SerializeField] private Vector3 _verticalVelocityVec;
 
+    private void Awake()
+    {
+        if (_settings != null)
+        {
+            _skinWidth = _settings.skinWidth;
+        }
+        else
+        {
+            Debug.LogWarning($"GlobalPhysicsSettings not assigned! Using default skin width of {_skinWidth}");
+        }
+        _boxHalfExtents -= new Vector3(_skinWidth, _skinWidth, _skinWidth); // Adjust box extents to account for skin width
+    }
     public Vector3 ResolveHorizontal(Vector3 velocity, float deltaTime)
     {
         Vector3 move = new Vector3(velocity.x, 0f, velocity.z) * deltaTime;
 
         Vector3 origin = transform.position;
         Vector3 direction = move.normalized;
-        float distance = Mathf.Max(_minCastDistance, move.magnitude);
+        float distance = Mathf.Max(_minCastDistance, move.magnitude + _skinWidth);
 
         if (Physics.BoxCast(origin, _boxHalfExtents, direction, out RaycastHit hit, Quaternion.identity, distance, _layer))
         {
@@ -51,7 +64,6 @@ public class NaiveCharacterCollisionResolver : MonoBehaviour
 
         return velocity;
     }
-
 
     private void OnDrawGizmosSelected()
     {

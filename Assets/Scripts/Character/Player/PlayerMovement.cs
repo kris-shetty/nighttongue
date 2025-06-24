@@ -44,6 +44,7 @@ public class PlayerMovement : MonoBehaviour
     public static readonly float FloatPrecisionThreshold = 0.01f;
     private GroundDetector _groundDetector;
     private NaiveCharacterCollisionResolver _terrainCollider;
+    private CollideSlideCharacterCollisionResolver _collider;
     private PushOffOverhang _pushOff;
     private Rigidbody _rigidbody;
     public Vector3 velocity;
@@ -151,14 +152,14 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void HandleCollisionResponse()
-    {
-        velocity = new Vector3(_velocity.x, _velocity.y, 0f);
-        Vector3 horizontalComponent = _terrainCollider.ResolveHorizontal(velocity, Time.fixedDeltaTime);
-        Vector3 verticalComponent = _terrainCollider.ResolveVertical(velocity, Time.fixedDeltaTime);
-        _velocity.x = horizontalComponent.x;
-        _velocity.y = verticalComponent.y;
-    }
+    //private void HandleNaiveCollisionResponse()
+    //{
+    //    velocity = new Vector3(_velocity.x, _velocity.y, 0f);
+    //    Vector3 horizontalComponent = _terrainCollider.ResolveHorizontal(velocity, Time.fixedDeltaTime);
+    //    Vector3 verticalComponent = _terrainCollider.ResolveVertical(velocity, Time.fixedDeltaTime);
+    //    _velocity.x = horizontalComponent.x;
+    //    _velocity.y = verticalComponent.y;
+    //}
 
     private void SimulateStep()
     {
@@ -167,8 +168,16 @@ public class PlayerMovement : MonoBehaviour
         //Vector3 velocityDiff = targetVel - currentVel;
 
         //_rigidbody.AddForce(velocityDiff, ForceMode.VelocityChange);
-        Vector3 displacement = new Vector3(_velocity.x, _velocity.y, 0.0f) * Time.fixedDeltaTime;
-        this.transform.position += displacement;
+        Vector3 horizontalDisplacement = new Vector3(_velocity.x, 0f, 0f) * Time.fixedDeltaTime;
+        Vector3 verticalDisplacement = new Vector3(0f, _velocity.y, 0f) * Time.fixedDeltaTime;
+        
+        horizontalDisplacement = _collider.ResolveCollideAndSlide(horizontalDisplacement, 0, false);
+        _velocity.x = horizontalDisplacement.x / Time.fixedDeltaTime;
+        this.transform.position += horizontalDisplacement;
+
+        verticalDisplacement = _collider.ResolveCollideAndSlide(verticalDisplacement, 0, true);
+        _velocity.y = verticalDisplacement.y / Time.fixedDeltaTime;
+        this.transform.position += verticalDisplacement;
     }
 
     private void HandleJumpLogic()
@@ -237,7 +246,7 @@ public class PlayerMovement : MonoBehaviour
 
         ClampVelocity();
         HandleOverhangPushOff();
-        HandleCollisionResponse();
+        //HandleNaiveCollisionResponse();
         SimulateStep();
     }
 
@@ -261,6 +270,7 @@ public class PlayerMovement : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _terrainCollider = GetComponent<NaiveCharacterCollisionResolver>();
         _pushOff = GetComponent<PushOffOverhang>();
+        _collider = GetComponent<CollideSlideCharacterCollisionResolver>();
 
         if (_terrainCollider == null )
         {

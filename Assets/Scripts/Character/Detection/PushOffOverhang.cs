@@ -48,14 +48,12 @@ public class PushOffOverhang : MonoBehaviour
         if ((_rightOuter && (!_rightInner && !_leftOuter && !_leftInner)))
         {
             transform.position += new Vector3(-_pushDistance, 0f, 0f);
-            Debug.Log("Pushed left off overhang due to right side ceiling hit.");
 
         }
         // Push right if left side hits ceiling but right side is clear
         else if ((_leftOuter && (!_leftInner && !_rightOuter && !_rightInner)))
         {
             transform.position += new Vector3(_pushDistance, 0f, 0f);
-            Debug.Log("Pushed right off overhang due to left side ceiling hit.");
         }
         else
         {

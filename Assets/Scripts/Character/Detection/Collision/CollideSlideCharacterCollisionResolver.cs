@@ -43,7 +43,6 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     {
         if (depth >= _maxCollideAndSlideDepth)
         {
-            Debug.LogWarning($"Max collide and slide depth reached: {depth}. Returning zero displacement to prevent infinite loop.");
             return Vector3.zero;
         }
 
@@ -80,13 +79,10 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
                     // If this is a gravity pass, we can just snap to the surface
                     return snapToSurface;
                 }
-                Debug.Log($"Collided with surface at angle {angle} degrees. Normal: {hit.normal}");
                 leftover = ProjectAndScale(leftover, hit.normal);
-                Debug.Log($"Leftover displacement after projection: {leftover}");
             }
             else // wall or steep slope
             {
-                Debug.Log($"Collided with steep surface at angle {angle} degrees. Normal: {hit.normal}");
                 leftover = ProjectAndScale(leftover, hit.normal);
             }
 

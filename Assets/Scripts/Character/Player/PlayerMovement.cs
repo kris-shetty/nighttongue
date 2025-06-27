@@ -3,6 +3,10 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    // === Input System ===
+    private InputSystem_Actions _controls;
+    private Vector2 _moveInput;
+
     [Header("Movement Settings")]
     [SerializeField] private float _maxHorizontalSpeed = 5f;
     [SerializeField] private float _maxVerticalSpeed = 1000f;
@@ -262,6 +266,16 @@ public class PlayerMovement : MonoBehaviour
         _fastFallGravity = _jumpGravity * _fastFallMultiplier;
         _gravity = _fastFallGravity;
         _initialJumpSpeed = (2.0f * _maxJumpHeight * _maxHorizontalSpeed) / (_constantGravityLateralDistance / 2.0f);
+
+        _controls = new InputSystem_Actions();
+
+        _controls.Player.Move.performed += ctx => _moveInput = ctx.ReadValue<Vector2>();
+        _controls.Player.Move.canceled += ctx => _moveInput = Vector2.zero;
+
+        _controls.Player.Jump.started += ctx => _requestedJump = true;
+        _controls.Player.Jump.performed += ctx => _heldJump = true;
+        _controls.Player.Jump.canceled += ctx => _heldJump = false;
+
     }
 
     void Start()
@@ -281,12 +295,12 @@ public class PlayerMovement : MonoBehaviour
         _rigidbody.freezeRotation = true;
     }
 
+    private void OnEnable() => _controls.Enable();
+    private void OnDisable() => _controls.Disable();
+
     void Update()
     {
-        _horizontalInput = Input.GetAxis("Horizontal");
-        if (Input.GetButtonDown("Jump"))
-            _requestedJump = true;
-        _heldJump = Input.GetButton("Jump");
+        _horizontalInput = _moveInput.x;
     }
 
     void FixedUpdate()

@@ -282,14 +282,8 @@ public class PlayerMovement : MonoBehaviour
     {
         _groundDetector = GetComponent<GroundDetector>();
         _rigidbody = GetComponent<Rigidbody>();
-        _terrainCollider = GetComponent<NaiveCharacterCollisionResolver>();
         _pushOff = GetComponent<PushOffOverhang>();
         _collider = GetComponent<CollideSlideCharacterCollisionResolver>();
-
-        if (_terrainCollider == null )
-        {
-            Debug.LogError("TerrainCollider3D component is missing on PlayerMovement object. Please add it to resolve collisions.");
-        }
 
         _rigidbody.isKinematic = true;
         _rigidbody.freezeRotation = true;

@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8422c45e6b42021468d49f082a556148, type: 3}
-  m_Name: GlobalPhysicsSettings
+  m_Script: {fileID: 11500000, guid: b8c2e05550f0cf643b5cdf62b31983ec, type: 3}
+  m_Name: PlayerTimeSettings
   m_EditorClassIdentifier: 
-  SkinWidth: 0.02
-  FloatPrecisionThreshold: 0.01
+  JumpBufferTime: 0.2
+  CoyoteTime: 0.1

@@ -27,9 +27,9 @@ public class InputManager : MonoBehaviour
         _controls.Player.Move.performed += ctx => MoveInput = ctx.ReadValue<Vector2>();
         _controls.Player.Move.canceled += ctx => MoveInput = Vector2.zero;
 
-        _controls.Player.Jump.started += ctx => OnJumpStarted?.Invoke();
-        _controls.Player.Jump.performed += ctx => OnJumpPerformed?.Invoke();
-        _controls.Player.Jump.canceled += ctx => OnJumpCanceled?.Invoke();
+        _controls.Player.Jump.started += ctx => { OnJumpStarted?.Invoke(); };
+        _controls.Player.Jump.performed += ctx => { OnJumpPerformed?.Invoke(); };
+        _controls.Player.Jump.canceled += ctx => { OnJumpCanceled?.Invoke(); };
     }
 
     private void OnEnable()

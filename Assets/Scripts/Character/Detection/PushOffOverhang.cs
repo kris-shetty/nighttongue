@@ -7,7 +7,7 @@ public class PushOffOverhang : MonoBehaviour
     [SerializeField] private LayerMask _layerMask;
     [SerializeField] private Vector3 _castOffset = new Vector3(0f, 0.1f, 0f);
     [SerializeField] private float _pushDistance = 0.25f; // How far to push the player
-    [SerializeField] private GlobalPhysicsSettings _settings;
+    [SerializeField] private GlobalPhysicsSettingsSO _settings;
     [SerializeField] private float _skinWidth = 0.02f; // Default skin width
 
     [Header("Debug Info")]
@@ -20,7 +20,7 @@ public class PushOffOverhang : MonoBehaviour
     {
         if (_settings != null)
         {
-            _skinWidth = _settings.skinWidth;
+            _skinWidth = _settings.SkinWidth;
         }
         else
         {

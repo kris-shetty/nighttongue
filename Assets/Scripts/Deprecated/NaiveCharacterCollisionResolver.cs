@@ -10,7 +10,7 @@ public class NaiveCharacterCollisionResolver : MonoBehaviour
     [SerializeField] private LayerMask _layer;
     [SerializeField] private float _minCastDistance = 0.02f;
     [SerializeField] private Vector3 _boxHalfExtents = new Vector3(0.5f, 1f, 0.5f);
-    [SerializeField] private GlobalPhysicsSettings _settings;
+    [SerializeField] private GlobalPhysicsSettingsSO _settings;
     [SerializeField] private float _skinWidth = 0.02f;
 
     [Header("Debug Settings")]
@@ -21,7 +21,7 @@ public class NaiveCharacterCollisionResolver : MonoBehaviour
     {
         if (_settings != null)
         {
-            _skinWidth = _settings.skinWidth;
+            _skinWidth = _settings.SkinWidth;
         }
         else
         {

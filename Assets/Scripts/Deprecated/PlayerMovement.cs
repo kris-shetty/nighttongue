@@ -255,14 +255,7 @@ public class PlayerMovement : MonoBehaviour
         _groundDetector.Refresh();
     }
 
-    void OnEnable()
-    {
-        InputManager.Instance.OnJumpStarted += HandleJumpStarted;
-        InputManager.Instance.OnJumpPerformed += HandleJumpPerformed;
-        InputManager.Instance.OnJumpCanceled += HandleJumpCanceled;
-    }
-
-    void OnDisable()
+    void OnDestroy()
     {
         InputManager.Instance.OnJumpStarted -= HandleJumpStarted;
         InputManager.Instance.OnJumpPerformed -= HandleJumpPerformed; 
@@ -303,6 +296,10 @@ public class PlayerMovement : MonoBehaviour
 
         _rigidbody.isKinematic = true;
         _rigidbody.freezeRotation = true;
+
+        InputManager.Instance.OnJumpStarted += HandleJumpStarted;
+        InputManager.Instance.OnJumpPerformed += HandleJumpPerformed;
+        InputManager.Instance.OnJumpCanceled += HandleJumpCanceled;
     }
 
     void Update()

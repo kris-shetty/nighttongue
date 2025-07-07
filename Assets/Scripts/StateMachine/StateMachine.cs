@@ -11,9 +11,11 @@ public abstract class StateMachine : MonoBehaviour
     {
         CurrentState.EnterState();
     }
-    private void Update()
+    private void FixedUpdate()
     {
-        CurrentState.UpdateState();
+        PreFixedStateUpdate();
+        CurrentState.FixedUpdateState();
+        PostFixedStateUpdate();
         if (!isTransitioningState && QueuedState != null)
         {
             TransitionToState(QueuedState);
@@ -50,4 +52,6 @@ public abstract class StateMachine : MonoBehaviour
     {
         CurrentState.OnTriggerExit(other);
     }
+    protected abstract void PreFixedStateUpdate();
+    protected abstract void PostFixedStateUpdate();
 }

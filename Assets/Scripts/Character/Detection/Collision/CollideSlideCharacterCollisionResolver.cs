@@ -5,7 +5,7 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     [SerializeField] private int _maxCollideAndSlideDepth = 5;
     [SerializeField] private float _maxSlopeAngle = 55f; // Maximum slope angle to consider for sliding
     [SerializeField] private LayerMask _layer;
-    [SerializeField] private GlobalPhysicsSettings _settings;
+    [SerializeField] private GlobalPhysicsSettingsSO _settings;
     [SerializeField] private float _skinWidth = 0.02f; // Default skin width
     [SerializeField] private Vector3 _point1 = new Vector3(0f, 0.5f, 0f);
     [SerializeField] private Vector3 _point2 = new Vector3(0f, -0.5f, 0f);
@@ -15,7 +15,7 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     {
         if (_settings != null)
         {
-            _skinWidth = _settings.skinWidth;
+            _skinWidth = _settings.SkinWidth;
         }
         else
         {

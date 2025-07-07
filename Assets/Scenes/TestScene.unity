@@ -119,6 +119,82 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &11834037
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 11834038}
+  m_Layer: 0
+  m_Name: GameSystems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &11834038
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 11834037}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 39774313}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &39774312
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 39774313}
+  - component: {fileID: 39774314}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &39774313
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39774312}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 11834038}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &39774314
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 39774312}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70d36d9189888204b8a15dcd2e24510a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!43 &70917714
 Mesh:
   m_ObjectHideFlags: 0
@@ -3943,8 +4019,8 @@ GameObject:
   - component: {fileID: 1983523199}
   - component: {fileID: 1983523198}
   - component: {fileID: 1983523197}
-  - component: {fileID: 1983523202}
-  - component: {fileID: 1983523204}
+  - component: {fileID: 1983523211}
+  - component: {fileID: 1983523210}
   - component: {fileID: 1983523205}
   - component: {fileID: 1983523206}
   - component: {fileID: 1983523207}
@@ -4078,57 +4154,6 @@ Transform:
   - {fileID: 1207465344}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1983523202
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1983523195}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8727a55db99cb74484abba82800b795, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxHorizontalSpeed: 7
-  _maxVerticalSpeed: 50
-  _acceleration: 5
-  _deceleration: 10
-  _groundFrictionForce: 5
-  _usePrecisionMovement: 1
-  _velocity:
-    x: 0
-    y: 0
-  _horizontalInput: 0
-  _fastFallMultiplier: 3
-  _maxJumpHeight: 5
-  _maxJumpLateralDistance: 10
-  _constantGravityLateralDistance: 0
-  _reachedJumpPeak: 0
-  _jumpBufferTime: 0.2
-  _coyoteTime: 0.1
-  velocity: {x: 0, y: 0, z: 0}
---- !u!114 &1983523204
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1983523195}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81d48c9803b87a64288a7e7cafdc41e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _layer:
-    serializedVersion: 2
-    m_Bits: 64
-  _minCastDistance: 0.02
-  _boxHalfExtents: {x: 0.5, y: 1, z: 0.5}
-  _settings: {fileID: 11400000, guid: 0ca81101c39fc4c409ef70aa8bb632d0, type: 2}
-  _skinWidth: 0.02
-  _horizontalVelocityVec: {x: 0, y: 0, z: 0}
-  _verticalVelocityVec: {x: 0, y: 0, z: 0}
 --- !u!114 &1983523205
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4167,7 +4192,7 @@ MonoBehaviour:
     m_Bits: 64
   _castOffset: {x: 0, y: 1, z: 0}
   _pushDistance: 0.3
-  _settings: {fileID: 11400000, guid: 0ca81101c39fc4c409ef70aa8bb632d0, type: 2}
+  _settings: {fileID: 11400000, guid: 2651186c934be8e49b833a92e841cb46, type: 2}
   _skinWidth: 0.02
   _leftOuter: 0
   _leftInner: 0
@@ -4190,7 +4215,7 @@ MonoBehaviour:
   _layer:
     serializedVersion: 2
     m_Bits: 64
-  _settings: {fileID: 11400000, guid: 0ca81101c39fc4c409ef70aa8bb632d0, type: 2}
+  _settings: {fileID: 11400000, guid: 2651186c934be8e49b833a92e841cb46, type: 2}
   _skinWidth: 0.02
   _point1: {x: 0, y: 0.5, z: 0}
   _point2: {x: 0, y: -0.5, z: 0}
@@ -4227,6 +4252,46 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   aimLine: {fileID: 1207465345}
+--- !u!114 &1983523210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983523195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a5677a432db790418e6dae04f4a2185, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1983523211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1983523195}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44ec0e20b0b20e647b4a7d185c7eea7c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  JumpAction: {fileID: 11400000, guid: 4b04f73bac87d104bb78b694067ba6c8, type: 2}
+  MoveAction: {fileID: 11400000, guid: eab848d299896a5479852fd7454c6b0a, type: 2}
+  TimeSettings: {fileID: 11400000, guid: ada5600278c48f245ad0d991437023a5, type: 2}
+  _settings: {fileID: 11400000, guid: 2651186c934be8e49b833a92e841cb46, type: 2}
+  _usePrecisionMovement: 0
+  RequestedJump: 0
+  HasCoyotedBuffered: 0
+  HasJumpBuffered: 0
+  Gravity: 0
+  JumpGravity: 0
+  FastFallGravity: 0
+  ConstantGravityLateralDistance: 0
+  Velocity:
+    x: 0
+    y: 0
+  GroundDetector: {fileID: 0}
 --- !u!1 &1999403938
 GameObject:
   m_ObjectHideFlags: 0
@@ -4891,7 +4956,7 @@ GameObject:
   - component: {fileID: 2129653636}
   - component: {fileID: 2129653635}
   m_Layer: 6
-  m_Name: Cube
+  m_Name: Overhang
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5242,3 +5307,4 @@ SceneRoots:
   - {fileID: 2129653640}
   - {fileID: 84766597}
   - {fileID: 384597600}
+  - {fileID: 11834038}

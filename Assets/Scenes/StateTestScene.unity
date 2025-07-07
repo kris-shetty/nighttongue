@@ -4506,7 +4506,7 @@ GameObject:
   - component: {fileID: 2129653636}
   - component: {fileID: 2129653635}
   m_Layer: 6
-  m_Name: Cube
+  m_Name: Overhang
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

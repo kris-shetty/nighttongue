@@ -9,14 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f02b0df7c68f4a0eb41cc5ed6c0ff8e, type: 3}
-  m_Name: Climb
+  m_Script: {fileID: 11500000, guid: 394a9380bc595437088e6a2ff56f50b2, type: 3}
+  m_Name: SuctionThrowAbility
   m_EditorClassIdentifier: 
-  abilityName: 
+  abilityName: SuctionThrowAbility
+  inputActionName: Player/SuctionThrow
   icon: {fileID: 0}
-  activationKey: 0
-  clingRange: 5
-  climbSpeed: 2
-  climbableSurfaces:
-    serializedVersion: 2
-    m_Bits: 0
+  suctionRange: 10
+  suctionForce: 15
+  maxHoldTime: 2
+  throwForceMultiplier: 10

@@ -9,8 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8422c45e6b42021468d49f082a556148, type: 3}
-  m_Name: GlobalPhysicsSettings
+  m_Script: {fileID: 11500000, guid: c97bff43a56f804449bb8e1962f27fda, type: 3}
+  m_Name: Jump Action
   m_EditorClassIdentifier: 
-  SkinWidth: 0.02
-  FloatPrecisionThreshold: 0.01
+  ActionName: Jump
+  ActionDescription: Basic jump action with parameterized controls
+  MaxJumpHeight: 5
+  MaxJumpLateralDistance: 10
+  FastFallMultiplier: 3

@@ -6,6 +6,7 @@ public abstract class BaseState
     public abstract void EnterState();
     public abstract void ExitState();
     public abstract void UpdateState();
+    public abstract void FixedUpdateState();
     public abstract BaseState GetNextState();
     public abstract void OnTriggerEnter(Collider other);
     public abstract void OnTriggerStay(Collider other);

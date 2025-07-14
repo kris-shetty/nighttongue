@@ -14,6 +14,7 @@ public class SuctionHandler : MonoBehaviour
 
     private Vector3 currentHoldPoint;
     private bool isHeldTightly = false;
+    private bool hasReachedHoldPointOnce = false;
 
     public bool IsHoldingObject => heldObject != null;
 
@@ -41,9 +42,16 @@ public class SuctionHandler : MonoBehaviour
             target.z = 0f;
             float distance = Vector3.Distance(heldObject.position, target);
 
-            if (distance > 1.5f)
+            // Drop if object was once close but now far again
+            if (hasReachedHoldPointOnce && distance > 1.5f)
             {
-                // Physics-based suction
+                Debug.Log("Object Dropped");
+                DropHeldObject();
+                return;
+            }
+
+            if (distance > 0.15f)
+            {
                 isHeldTightly = false;
                 Vector3 direction = (target - heldObject.position).normalized;
                 heldObject.AddForce(direction * activeAbility.suctionForce, ForceMode.Force);
@@ -54,6 +62,7 @@ public class SuctionHandler : MonoBehaviour
                 if (!isHeldTightly)
                 {
                     isHeldTightly = true;
+                    hasReachedHoldPointOnce = true;
                     heldObject.linearVelocity = Vector3.zero;
                     heldObject.useGravity = false;
                 }
@@ -63,6 +72,18 @@ public class SuctionHandler : MonoBehaviour
         }
 
         UpdateAimLine();
+    }
+
+    void DropHeldObject()
+    {
+        if (heldObject != null)
+        {
+            heldObject.useGravity = true;
+            heldObject = null;
+            holdTimer = 0f;
+            isHeldTightly = false;
+            hasReachedHoldPointOnce = false;
+        }
     }
 
     void TrySuctionObject()
@@ -83,6 +104,7 @@ public class SuctionHandler : MonoBehaviour
                 heldObject.useGravity = false;
                 heldObject.linearVelocity = Vector3.zero;
                 isHeldTightly = false;
+                hasReachedHoldPointOnce = false;
                 Debug.Log("Object held: " + heldObject.name);
             }
         }
@@ -93,6 +115,7 @@ public class SuctionHandler : MonoBehaviour
         if (heldObject != null)
         {
             isHeldTightly = false;
+            hasReachedHoldPointOnce = false;
 
             Vector3 mouseWorldPos = GetMouseWorldPosition();
             Vector3 direction = (mouseWorldPos - transform.position);

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "PlayerTimeSettings", menuName = "Player/Time")]
+[CreateAssetMenu(fileName = "PlayerTimeSettings", menuName = "Player/Settings/Time")]
 public class PlayerTimeSettingsSO : ScriptableObject
 {
     public float JumpBufferTime = 0.2f;

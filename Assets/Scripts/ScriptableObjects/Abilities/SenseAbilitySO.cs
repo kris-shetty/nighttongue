@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Abilities/SenseAbility")]
+[CreateAssetMenu(menuName = "Abilities/Sense")]
 public class SenseAbilitySO : AbilitySO
 {
     public float detectionRadius = 3f;
@@ -12,4 +12,6 @@ public class SenseAbilitySO : AbilitySO
         // Lick logic or reveal hidden things
         Debug.Log("Activating Sense");
     }
+
+
 }

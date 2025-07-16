@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Abilities/ClimbAbility")]
+[CreateAssetMenu(menuName = "Abilities/Climb")]
 public class ClimbAbilitySO : AbilitySO
 {
     public float clingRange = 5f;

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Abilities/AbsorptionAbility")]
+[CreateAssetMenu(menuName = "Abilities/Absorption")]
 public class AbsorptionAbilitySO : AbilitySO
 {
     public FlavorBuffSO absorbedBuff;
@@ -12,5 +12,6 @@ public class AbsorptionAbilitySO : AbilitySO
         // Apply buff to player
         Debug.Log("Absorbing: " + absorbedBuff.buffType);
     }
+
 }
 

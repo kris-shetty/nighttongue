@@ -9,12 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 394a9380bc595437088e6a2ff56f50b2, type: 3}
-  m_Name: SuctionThrowAbility
+  m_Script: {fileID: 11500000, guid: 60bb2cdd6c9edd54ca3337e2d2ce542d, type: 3}
+  m_Name: Throwable
   m_EditorClassIdentifier: 
-  abilityName: SuctionThrowAbility
-  inputActionName: Player/SuctionThrow
-  icon: {fileID: 0}
-  suctionRange: 5
-  suctionForce: 5
-  suctionConeAngle: 45
+  MaxVerticalHeight: 3
+  MaxHoldTime: 2

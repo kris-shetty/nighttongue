@@ -2,13 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Abilities/SuctionThrowAbility")]
+[CreateAssetMenu(menuName = "Abilities/Suction Throw")]
 public class SuctionThrowAbilitySO : AbilitySO
 {
     public float suctionRange = 6f;
-    public float suctionForce = 15f;
-    public float maxHoldTime = 2f;
-    public float throwForceMultiplier = 25f;
+    public float suctionForce = 10f;
+    public float suctionConeAngle = 45f; 
 
     public override void Activate(GameObject user)
     {

@@ -41,11 +41,10 @@ public class PlayerController : StateMachine
     {
         if (GroundDetector.IsGrounded)
         {
-            RequestedJump = true; // Immediate jump
+            RequestedJump = true; 
         }
         else
         {
-            // Buffer the jump for when we land
             HasJumpBuffered = true;
             _elapsedJumpBufferTime = 0f;
         }
@@ -63,7 +62,6 @@ public class PlayerController : StateMachine
 
     private void UpdateBuffers()
     {
-        // Update Jump Buffer
         if (HasJumpBuffered)
         {
             _elapsedJumpBufferTime += Time.fixedDeltaTime;
@@ -74,7 +72,6 @@ public class PlayerController : StateMachine
             }
         }
 
-        // Update Coyote Time
         if (HasCoyotedBuffered)
         {
             _elapsedCoyoteTime += Time.fixedDeltaTime;
@@ -85,7 +82,6 @@ public class PlayerController : StateMachine
             }
         }
 
-        // Start coyote time if we just left the ground
         if (GroundDetector.WasGrounded && !GroundDetector.IsGrounded && !HasCoyotedBuffered)
         {
             HasCoyotedBuffered = true;
@@ -205,6 +201,8 @@ public class PlayerController : StateMachine
         ConstantGravityLateralDistance = (2 * JumpAction.MaxJumpLateralDistance * Mathf.Sqrt(JumpAction.FastFallMultiplier)) / (1 + Mathf.Sqrt(JumpAction.FastFallMultiplier));
         JumpGravity = (-2f * JumpAction.MaxJumpHeight * Mathf.Pow(MoveAction.MaxHorizontalSpeed, 2.0f)) / (Mathf.Pow((ConstantGravityLateralDistance / 2.0f), 2.0f));
         FastFallGravity = JumpGravity * JumpAction.FastFallMultiplier;
+        Vector3 gravityVector = new Vector3(0f, FastFallGravity, 0f);
+        PhysicsManager.Instance.SetGravity(gravityVector);
 
         // Initialize starting state
         CurrentState = new GroundedState(this);
@@ -256,6 +254,6 @@ public class PlayerController : StateMachine
     protected override void PostFixedStateUpdate()
     {
         SimulateStep();
-        RequestedJump = false; // Reset jump request after processing
+        RequestedJump = false;
     }
 }

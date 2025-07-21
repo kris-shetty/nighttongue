@@ -25,23 +25,31 @@ public class GroundedState : BaseState
         {
             return new FallingState(_controller);
         }
+        if (_controller.RequestedGrapple)
+        {
+            return new GrapplingState(_controller);
+        }
         return null;
     }
 
     public override void FixedUpdateState()
     {
+        _controller.ApplyPhysics();
+        _controller.HandleGroundedMovementLogic();
+        _controller.UpdateBuffers(); 
         BaseState nextState = GetNextState();
         if (nextState != null)
         {
             _controller.TransitionToState(nextState);
         }
+        _controller.SimulateStep();
     }
 
     public override void ExitState()
     {
         // Clear jump flags when leaving ground
         _controller.RequestedJump = false;
-        _controller.HasCoyotedBuffered = false;
+        _controller.HasCoyoteBuffered = false;
         _controller.HasJumpBuffered = false;
     }
 

@@ -10,17 +10,22 @@ public class FallingState : BaseState
     }
 
     public override void EnterState()
-    {
+    { 
         _controller.Gravity = _controller.FastFallGravity;
+        _controller.ActivateCoyoteTime();
     }
 
     public override void FixedUpdateState()
     {
+        _controller.ApplyPhysics();
+        _controller.HandleGroundedMovementLogic();
+        _controller.UpdateBuffers();
         BaseState nextState = GetNextState();
         if (nextState != null)
         {
             _controller.TransitionToState(nextState);
         }
+        _controller.SimulateStep();
     }
 
     public override BaseState GetNextState()
@@ -31,9 +36,14 @@ public class FallingState : BaseState
         }
 
         // Check for coyote jump
-        if (_controller.HasCoyotedBuffered && _controller.RequestedJump)
+        if (_controller.HasCoyoteBuffered && _controller.RequestedJump)
         {
             return new JumpingState(_controller);
+        }
+
+        if (_controller.RequestedGrapple)
+        {
+            return new GrapplingState(_controller);
         }
 
         return null; // Stay in FallingState

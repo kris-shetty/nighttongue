@@ -1,13 +1,15 @@
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.InputSystem.XR;
 
 public class PlayerController : StateMachine
 {
     [Header("State Machine Context")]
     public JumpActionSO JumpAction;
     public MoveActionSO MoveAction;
+    public GrappleAbilitySO GrappleAbility;
     public PlayerTimeSettingsSO TimeSettings;
-    public GlobalPhysicsSettingsSO _settings;
+    public GlobalPhysicsSettingsSO Settings;
     [SerializeField] private bool _usePrecisionMovement = false;
 
     // Input Handler
@@ -15,8 +17,9 @@ public class PlayerController : StateMachine
 
     // Flags
     public bool RequestedJump = false;
-    public bool HasCoyotedBuffered = false;
+    public bool HasCoyoteBuffered = false;
     public bool HasJumpBuffered = false;
+    public bool RequestedGrapple = false;
 
     // Buffer Timers
     private float _elapsedJumpBufferTime = 0f;
@@ -27,6 +30,11 @@ public class PlayerController : StateMachine
     public float JumpGravity;
     public float FastFallGravity;
     public float ConstantGravityLateralDistance;
+
+    // Grapple data
+    public Vector3 GrappleTargetPoint { get; private set; }
+    public LayerMask WhatIsGrappable;
+    public void SetGrappleTarget(Vector3 grappleTarget) { GrappleTargetPoint = grappleTarget; }
 
     public float2 Velocity;
     public bool IsJumpHeld { get; private set; }
@@ -39,9 +47,12 @@ public class PlayerController : StateMachine
 
     private void HandleJumpRequested()
     {
-        if (GroundDetector.IsGrounded)
+        Debug.Log($"HandleJumpRequested :: IsGrounded={GroundDetector.IsGrounded}, HasCoyoteBuffered={HasCoyoteBuffered}");
+
+        if (GroundDetector.IsGrounded || HasCoyoteBuffered)
         {
-            RequestedJump = true; 
+            Debug.Log("PlayerController :: Jump requested. Transitioning to JumpingState.");
+            RequestedJump = true;
         }
         else
         {
@@ -60,7 +71,7 @@ public class PlayerController : StateMachine
         IsJumpHeld = true;
     }
 
-    private void UpdateBuffers()
+    public void UpdateBuffers()
     {
         if (HasJumpBuffered)
         {
@@ -72,57 +83,112 @@ public class PlayerController : StateMachine
             }
         }
 
-        if (HasCoyotedBuffered)
+        if (HasCoyoteBuffered)
         {
             _elapsedCoyoteTime += Time.fixedDeltaTime;
+            Debug.Log($"PlayerController :: Coyote Time elapsed: {_elapsedCoyoteTime}");
             if (_elapsedCoyoteTime >= TimeSettings.CoyoteTime)
             {
-                HasCoyotedBuffered = false;
+                HasCoyoteBuffered = false;
                 _elapsedCoyoteTime = 0f;
             }
         }
+    }
 
-        if (GroundDetector.WasGrounded && !GroundDetector.IsGrounded && !HasCoyotedBuffered)
+    public void ActivateCoyoteTime()
+    {
+        if (GroundDetector.WasGrounded)
         {
-            HasCoyotedBuffered = true;
+            Debug.Log("PlayerController :: GroundDetector detected a loss of ground. Coyote Buffered");
+            HasCoyoteBuffered = true;
             _elapsedCoyoteTime = 0f;
         }
     }
 
-    private void ApplyVerticalMovement()
+    public void ApplyVerticalMovement()
     {
         Velocity.y += Gravity * Time.fixedDeltaTime;
     }
 
-    private void ApplyPrecisionMovement()
+    public void ApplyPrecisionMovement()
     {
         float targetSpeed = _horizontalInput * MoveAction.MaxHorizontalSpeed;
         Velocity.x = targetSpeed;
     }
 
-    private void ApplyMomentumMovement()
+    public void ApplyMomentumMovement()
     {
-        if (Mathf.Abs(_horizontalInput) > _settings.FloatPrecisionThreshold)
+        float horizontalTargetSpeed = _horizontalInput * MoveAction.MaxHorizontalSpeed;
+        float currentSpeed = Velocity.x;
+
+        // Determine if player is counter-strafing
+        bool isCounterStrafing = (_horizontalInput > Settings.FloatPrecisionThreshold && currentSpeed < 0)
+                                 || (_horizontalInput < -Settings.FloatPrecisionThreshold && currentSpeed > 0);
+
+        float acceleration = isCounterStrafing ? MoveAction.Deceleration : MoveAction.Acceleration;
+
+        // Calculate intended speed change this frame
+        float speedDifference = horizontalTargetSpeed - currentSpeed;
+        float accelerationChange = acceleration * Time.fixedDeltaTime;
+
+        if (Mathf.Abs(_horizontalInput) > Settings.FloatPrecisionThreshold)
         {
-            float horizontalTargetSpeed = _horizontalInput * MoveAction.MaxHorizontalSpeed;
-            float horizontalSpeedDifference = horizontalTargetSpeed - Velocity.x;
-            float acceleration;
-
-            bool isCounterStrafing = (_horizontalInput > _settings.FloatPrecisionThreshold && Velocity.x < 0)
-                                        ||
-                                     (_horizontalInput < -_settings.FloatPrecisionThreshold && Velocity.x > 0);
-
-            acceleration = isCounterStrafing ? MoveAction.Deceleration : MoveAction.Acceleration;
-
-            Velocity.x += horizontalSpeedDifference * acceleration * Time.fixedDeltaTime;
+            if (Mathf.Sign(currentSpeed) == Mathf.Sign(_horizontalInput))
+            {
+                // Moving in same direction as input
+                if (Mathf.Abs(currentSpeed) < Mathf.Abs(horizontalTargetSpeed))
+                {
+                    // Accelerate up to target speed
+                    if (Mathf.Abs(speedDifference) <= accelerationChange)
+                    {
+                        Velocity.x = horizontalTargetSpeed;
+                    }
+                    else
+                    {
+                        Velocity.x += Mathf.Sign(speedDifference) * accelerationChange;
+                    }
+                }
+                // Already at or above max input speed: do not add further input-based speed
+            }
+            else
+            {
+                // Counter-strafe to reverse direction
+                if (Mathf.Abs(speedDifference) <= accelerationChange)
+                {
+                    Velocity.x = horizontalTargetSpeed;
+                }
+                else
+                {
+                    Velocity.x += Mathf.Sign(speedDifference) * accelerationChange;
+                }
+            }
         }
     }
 
-    private void ApplyFriction()
+    public void ApplySpeedDecay()
     {
-        if (Mathf.Abs(_horizontalInput) < _settings.FloatPrecisionThreshold)
+        float currentSpeed = Mathf.Abs(Velocity.x);
+
+        if (currentSpeed > MoveAction.MaxHorizontalSpeed)
         {
-            if (Mathf.Abs(Velocity.x) < _settings.FloatPrecisionThreshold)
+            float excessSpeed = currentSpeed - MoveAction.MaxHorizontalSpeed;
+            float decayAmt = excessSpeed * MoveAction.SpeedDecayRate * Time.fixedDeltaTime;
+
+            if (Velocity.x > 0f)
+            {
+                Velocity.x = Mathf.Max(Velocity.x - decayAmt, MoveAction.MaxHorizontalSpeed);
+            }
+            else if (Velocity.x < 0f)
+            {
+                Velocity.x = Mathf.Min(Velocity.x + decayAmt, -MoveAction.MaxHorizontalSpeed);
+            }
+        }
+    }
+    public void ApplyFriction()
+    {
+        if (Mathf.Abs(_horizontalInput) < Settings.FloatPrecisionThreshold)
+        {
+            if (Mathf.Abs(Velocity.x) < Settings.FloatPrecisionThreshold)
             {
                 Velocity.x = 0f;
             }
@@ -142,13 +208,12 @@ public class PlayerController : StateMachine
         }
     }
 
-    private void ClampVelocity()
+    public void ClampVerticalVelocity()
     {
-        Velocity.x = Mathf.Clamp(Velocity.x, -MoveAction.MaxHorizontalSpeed, MoveAction.MaxHorizontalSpeed);
         Velocity.y = Mathf.Clamp(Velocity.y, -MoveAction.MaxVerticalSpeed, MoveAction.MaxVerticalSpeed);
     }
 
-    private void HandleOverhangPushOff()
+    public void HandleOverhangPushOff()
     {
         if (_pushOff != null)
         {
@@ -160,7 +225,7 @@ public class PlayerController : StateMachine
         }
     }
 
-    private void SimulateStep()
+    public void SimulateStep()
     {
         Vector3 horizontalDisplacement = new Vector3(Velocity.x, 0f, 0f) * Time.fixedDeltaTime;
         Vector3 verticalDisplacement = new Vector3(0f, Velocity.y, 0f) * Time.fixedDeltaTime;
@@ -173,14 +238,37 @@ public class PlayerController : StateMachine
         verticalDisplacement = _collider.ResolveCollideAndSlide(verticalDisplacement, 0, true);
         Velocity.y = verticalDisplacement.y / Time.fixedDeltaTime;
         this.transform.position += verticalDisplacement;
+        ResetFlags();
     }
 
-    private void ApplyPhysics()
+    public void ApplyPhysics()
     {
         GroundDetector.Refresh();
     }
 
-    private void HandleMovementLogic()
+    public void ResetFlags()
+    {
+        RequestedJump = false;
+    }
+
+    public void HandleGroundedMovementLogic()
+    {
+        ApplyVerticalMovement();
+
+        if (_usePrecisionMovement)
+            ApplyPrecisionMovement();
+        else
+        {
+            ApplyMomentumMovement();
+            ApplySpeedDecay();
+            ApplyFriction();
+        }
+
+        ClampVerticalVelocity();
+        HandleOverhangPushOff();
+    }
+
+    public void HandleAirMovementLogic()
     {
         ApplyVerticalMovement();
 
@@ -192,7 +280,22 @@ public class PlayerController : StateMachine
             ApplyFriction();
         }
 
-        ClampVelocity();
+        ClampVerticalVelocity();
+        HandleOverhangPushOff();
+    }
+
+    public void HandleFrictionlessMovementLogic()
+    {
+        ApplyVerticalMovement();
+
+        if (_usePrecisionMovement)
+            ApplyPrecisionMovement();
+        else
+        {
+            ApplyMomentumMovement();
+        }
+
+        ClampVerticalVelocity();
         HandleOverhangPushOff();
     }
 
@@ -215,11 +318,15 @@ public class PlayerController : StateMachine
         _pushOff = GetComponent<PushOffOverhang>();
         _collider = GetComponent<CollideSlideCharacterCollisionResolver>();
         _inputHandler = GetComponent<PlayerInputHandler>();
+        GrappleAbility = GetComponent<GrappleHandler>().ActiveAbility;
+        WhatIsGrappable = GetComponent<GrappleHandler>().WhatIsGrappable;
 
         _rigidbody.isKinematic = true;
         _rigidbody.freezeRotation = true;
-        
-        _horizontalInput = InputManager.Instance.MoveInput.x;
+        RequestedGrapple = false;
+
+
+        _horizontalInput = _inputHandler.MoveInput.x;
 
         // Subscribe to input events ONCE
         _inputHandler.OnJumpRequested += HandleJumpRequested;
@@ -240,20 +347,7 @@ public class PlayerController : StateMachine
 
     private void Update()
     {
-        _horizontalInput = InputManager.Instance.MoveInput.x;
+        _horizontalInput = _inputHandler.MoveInput.x;
         IsJumpHeld = _inputHandler.IsJumpHeld;
-    }
-
-    protected override void PreFixedStateUpdate()
-    {
-        ApplyPhysics();
-        HandleMovementLogic();
-        UpdateBuffers(); // Handle all buffer logic centrally
-    }
-
-    protected override void PostFixedStateUpdate()
-    {
-        SimulateStep();
-        RequestedJump = false;
     }
 }

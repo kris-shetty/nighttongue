@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using System.Collections;
 
 public class PlayerInputHandler : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class PlayerInputHandler : MonoBehaviour
     [Header("Input Properties")]
     public Vector2 MoveInput { get; private set; }
     public bool IsJumpHeld { get; private set; }
+
+    private bool _isFrozen = false;
 
     void OnEnable()
     {
@@ -36,25 +39,50 @@ public class PlayerInputHandler : MonoBehaviour
         // Update movement input every frame
         if (InputManager.Instance != null)
         {
-            MoveInput = InputManager.Instance.MoveInput;
+            MoveInput = _isFrozen ? Vector2.zero : InputManager.Instance.MoveInput;
         }
+    }
+
+    private void ProcessInputWrapper(Action stateUpdate, Action inputEvent)
+    {
+        if (_isFrozen)
+            return;
+
+        stateUpdate?.Invoke();
+        inputEvent?.Invoke();
     }
 
     private void HandleJumpStarted()
     {
-        IsJumpHeld = true;
-        OnJumpRequested?.Invoke();
+        ProcessInputWrapper(() => IsJumpHeld = true, OnJumpRequested);
     }
 
     private void HandleJumpPerformed()
     {
-        IsJumpHeld = true;
-        OnJumpHeld?.Invoke();
+        ProcessInputWrapper(() => IsJumpHeld = true, OnJumpHeld);
+ 
     }
 
     private void HandleJumpCanceled()
     {
-        IsJumpHeld = false;
-        OnJumpReleased?.Invoke();
+        ProcessInputWrapper(() => IsJumpHeld = false, OnJumpReleased);
     }
+    public void SetFrozen(bool frozen)
+    {
+        _isFrozen = frozen;
+        if (frozen)
+            MoveInput = Vector2.zero; // Clear input when frozen
+    }
+    public void FreezeInput(float duration)
+    {
+        SetFrozen(true);
+        StartCoroutine(FreezeRoutine(duration));
+    }
+
+    private IEnumerator FreezeRoutine(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        SetFrozen(false);
+    }
+
 }

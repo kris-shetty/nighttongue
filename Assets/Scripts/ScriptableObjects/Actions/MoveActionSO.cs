@@ -8,6 +8,7 @@ public class MoveActionSO : BaseActionSO
     public float Acceleration = 5f;
     public float Deceleration = 10f;
     public float GroundFrictionForce = 5f;
+    public float SpeedDecayRate = 0.2f;
 
     private void OnEnable()
     {

@@ -25,7 +25,7 @@ public class JumpingState : BaseState
     {
         ApplyJump();
         _controller.HasJumpBuffered = false;
-        _controller.HasCoyotedBuffered = false;
+        _controller.HasCoyoteBuffered = false;
     }
 
     public override BaseState GetNextState()
@@ -33,6 +33,11 @@ public class JumpingState : BaseState
         if (_controller.Velocity.y <= 0f)
         {
             return new FallingState(_controller);
+        }
+
+        if(_controller.RequestedGrapple)
+        {
+            return new GrapplingState(_controller);
         }
         return null;
     }
@@ -44,18 +49,22 @@ public class JumpingState : BaseState
 
     public override void FixedUpdateState()
     {
+        _controller.ApplyPhysics();
+        _controller.HandleAirMovementLogic();
+        _controller.UpdateBuffers();
         // Apply fast fall gravity if jump is not held
         if (!_controller.IsJumpHeld)
         {
             _controller.Gravity = _controller.FastFallGravity;
         }
-
+        
         BaseState state = GetNextState();
 
         if (state != null)
         {
             _controller.TransitionToState(state);
         }
+        _controller.SimulateStep();
     }
 
     public override void ExitState() { }

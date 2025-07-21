@@ -6,7 +6,6 @@ public class PhysicsManager : MonoBehaviour
 
     public void SetGravity(Vector3 gravity)
     {
-        Debug.Log($"Setting gravity to: {gravity}");
         Physics.gravity = gravity;
     }
 

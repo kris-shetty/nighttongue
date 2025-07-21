@@ -8,13 +8,14 @@ public class SuctionHandler : MonoBehaviour
     private float holdTimer;
     private SuctionThrowAbilitySO activeAbility;
     private MoveActionSO _moveAction;
+    private GameObject _tongue;
+    private TongueController _tongueController;
 
     [Header("References")]
     public Transform suctionPoint;
     public LayerMask aimPlaneMask;
     public LineRenderer aimLine;
 
-    private Vector3 currentHoldPoint;
     private bool hasReachedHoldPointOnce = false;
     private bool _isSuctioning = false;
     private HashSet<Rigidbody> _suctionedObjects = new HashSet<Rigidbody>();
@@ -37,14 +38,12 @@ public class SuctionHandler : MonoBehaviour
     }
 
     void Update()
-    {
-        UpdateAimLine();
-
+    { 
         if (IsHoldingObject)
         {
             holdTimer += Time.deltaTime;
 
-            Vector3 target = currentHoldPoint;
+            Vector3 target = _tongueController.EndPoint;
             target.z = 0f;
             float distance = Vector3.Distance(heldObject.position, target);
 
@@ -61,15 +60,10 @@ public class SuctionHandler : MonoBehaviour
 
             
             heldObject.MovePosition(target);
-            Debug.Log($"SuctionHandler :: Holding object: {heldObject.name}, Distance to hold point: {distance}");
         }
         else if (_isSuctioning)
         {
             TrySuctionObject();
-        }
-        else
-        {
-            Debug.Log("SuctionHandler :: Not suctioning or holding an object.");
         }
     }
 
@@ -86,10 +80,7 @@ public class SuctionHandler : MonoBehaviour
 
     void TrySuctionObject()
     {
-        Vector3 mouseWorldPos = GetMouseWorldPosition();
-        Vector3 direction = (mouseWorldPos - transform.position);
-        direction.z = 0f;
-        direction = direction.normalized;
+        Vector3 direction = _tongueController.Direction;
 
         HashSet<Rigidbody> currentFrameSuctioned = new HashSet<Rigidbody>();
 
@@ -141,7 +132,6 @@ public class SuctionHandler : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log($"SuctionHandler :: Object {collider.name} is out of suction cone angle. Distance: {distance}, Angle: {angle}");
                     // Only restore gravity if this object was previously being suctioned
                     if (_suctionedObjects.Contains(rb))
                     {
@@ -173,10 +163,7 @@ public class SuctionHandler : MonoBehaviour
         {
             hasReachedHoldPointOnce = false;
 
-            Vector3 mouseWorldPos = GetMouseWorldPosition();
-            Vector3 direction = (mouseWorldPos - transform.position);
-            direction.z = 0f;
-            direction = direction.normalized;
+            Vector3 direction = _tongueController.Direction;
 
             heldObject.useGravity = true;
 
@@ -195,7 +182,6 @@ public class SuctionHandler : MonoBehaviour
             Vector3 horizontalVelocity = horizontalDirection * (maxVelocity * Mathf.Sin(angle * Mathf.Deg2Rad));
 
             Vector3 finalVelocity = verticalVelocity + horizontalVelocity;
-            Debug.Log($"SuctionHandler :: Throwing object with velocity: {finalVelocity}");
 
             float multipler = Mathf.Clamp01(holdTimer / throwableObject.MaxHoldTime);
             heldObject.AddForce(finalVelocity * multipler, ForceMode.VelocityChange);
@@ -205,37 +191,9 @@ public class SuctionHandler : MonoBehaviour
         }
     }
 
-    Vector3 GetMouseWorldPosition()
-    {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if (Physics.Raycast(ray, out RaycastHit hit, 100f, aimPlaneMask))
-        {
-            return hit.point;
-        }
-        return transform.position;
-    }
+    
 
-    void UpdateAimLine()
-    {
-        if (aimLine != null)
-        {
-            Vector3 mouseWorldPos = GetMouseWorldPosition();
-            Vector3 direction = (mouseWorldPos - transform.position);
-            direction.z = 0f;
-            direction = direction.normalized;
-
-            float lineLength = 2f;
-            Vector3 endPoint = transform.position + direction * lineLength;
-
-            suctionPoint.position = transform.position;
-            currentHoldPoint = endPoint;
-
-            aimLine.SetPosition(0, transform.position);
-            aimLine.SetPosition(1, endPoint);
-            aimLine.startWidth = 0.5f;
-            aimLine.endWidth = 0.0f;
-        }
-    }
+    
 
     private float CalculateThrowVelocity(float maxHeight)
     {
@@ -259,12 +217,21 @@ public class SuctionHandler : MonoBehaviour
 
     private void Awake()
     {
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player == null)
+        _tongue = transform.Find("Tongue").gameObject;
+
+        if (_tongue == null)
         {
-            Debug.LogError("SuctionHandler :: Player GameObject not found in the scene.");
-            return;
+            Debug.LogError("SuctionHandler: Tongue GameObject not found. Please ensure it is attached as a child to this GameObject.");
         }
-        _moveAction = player.GetComponentInParent<PlayerController>().MoveAction;
+        else
+        {
+            _tongueController = _tongue.GetComponent<TongueController>();
+            if (_tongueController == null)
+            {
+                Debug.LogError("SuctionHandler :: TongueController component not found on the Tongue GameObject.");
+            }
+        }
+
+        _moveAction = GetComponent<PlayerController>().MoveAction;
     }
 }

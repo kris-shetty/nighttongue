@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class CollideSlideCharacterCollisionResolver : MonoBehaviour
@@ -10,6 +11,8 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     [SerializeField] private Vector3 _point1 = new Vector3(0f, 0.5f, 0f);
     [SerializeField] private Vector3 _point2 = new Vector3(0f, -0.5f, 0f);
     [SerializeField] private float _radius = 0.5f;
+
+    public event Action OnCollisionDetected;
 
     private void Awake()
     {
@@ -58,6 +61,7 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
 
         if (Physics.CapsuleCast(origin + _point1, origin + _point2, _radius, direction, out hit, distance, _layer))
         {
+            OnCollisionDetected?.Invoke();
             Vector3 snapToSurface = direction * Mathf.Max(0, hit.distance - _skinWidth);
             Vector3 leftover = displacement - snapToSurface;
             float angle = Vector3.Angle(hit.normal, Vector3.up);

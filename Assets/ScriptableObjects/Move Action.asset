@@ -18,5 +18,6 @@ MonoBehaviour:
   MaxHorizontalSpeed: 7
   MaxVerticalSpeed: 50
   Acceleration: 5
-  Deceleration: 5
+  Deceleration: 15
   GroundFrictionForce: 10
+  SpeedDecayRate: 2

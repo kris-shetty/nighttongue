@@ -50,7 +50,6 @@ public class SuctionHandler : MonoBehaviour
             // Drop if object was once close but now far again
             if (hasReachedHoldPointOnce && distance >= 1.5f)
             {
-                Debug.Log("Object Dropped");
                 DropHeldObject();
                 return;
             }
@@ -121,12 +120,11 @@ public class SuctionHandler : MonoBehaviour
 
                     if (distance <= 2.0f && heldObject == null)
                     {
-                        _isSuctioning = false; // Stop suctioning when an object is held
+                        _isSuctioning = false; 
                         heldObject = rb;
                         heldObject.linearVelocity = Vector3.zero;
                         hasReachedHoldPointOnce = true;
 
-                        Debug.Log("Object held: " + heldObject.name);
                         return; // Exit after holding the first valid object
                     }
                 }
@@ -137,7 +135,6 @@ public class SuctionHandler : MonoBehaviour
                     {
                         rb.useGravity = true;
                         rb.linearVelocity = Vector3.zero;
-                        Debug.Log($"SuctionHandler :: Restored gravity for {rb.name} (out of cone)");
                     }
                 }
             }
@@ -148,7 +145,6 @@ public class SuctionHandler : MonoBehaviour
         {
             if (!currentFrameSuctioned.Contains(rb))
             {
-                Debug.Log($"SuctionHandler :: Object {rb.name} is no longer in suction range");
                 rb.useGravity = true;
                 rb.linearVelocity = Vector3.zero; // Reset velocity when suction ends
             }
@@ -170,7 +166,6 @@ public class SuctionHandler : MonoBehaviour
             ThrowableObject throwableObject = heldObject.GetComponent<ThrowableObject>();
             if (throwableObject == null)
             {
-                Debug.LogWarning("SuctionHandler :: Held object does not have a ThrowableObject component.");
                 return;
             }
             float maxVelocity = CalculateThrowVelocity(throwableObject.MaxVerticalHeight);
@@ -191,15 +186,10 @@ public class SuctionHandler : MonoBehaviour
         }
     }
 
-    
-
-    
-
     private float CalculateThrowVelocity(float maxHeight)
     {
         if (heldObject == null)
         {
-            Debug.LogWarning("SuctionHandler :: Cannot calculate throw velocity, heldObject or properties is null.");
             return 0f;
         }
         float velocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * maxHeight);

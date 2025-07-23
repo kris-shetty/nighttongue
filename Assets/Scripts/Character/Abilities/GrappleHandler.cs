@@ -11,6 +11,7 @@ public class GrappleHandler : MonoBehaviour
     public LayerMask WhatIsGrappable;
     private Vector3 _grapplePoint;
     private PlayerInputHandler _inputHandler;
+    private float _currentCooldownDuration = 0f;
 
     public void ToggleGrapple(GrappleAbilitySO ability)
     {
@@ -21,6 +22,7 @@ public class GrappleHandler : MonoBehaviour
         if (_grappleTimer > 0f)
             return;
 
+        _currentCooldownDuration = ActiveAbility.Cooldown;
         _isGrapplingOnCooldown = true;
 
         RaycastHit hit;
@@ -50,7 +52,9 @@ public class GrappleHandler : MonoBehaviour
 
     public void UntoggleGrapple()
     {
-        _playerController.RequestedGrapple = false;
+        _playerController.GrappleAbility = null;
+        _playerController.RequestedGrapple = false;   
+        _playerController.SetGrappleTarget(Vector3.zero);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -67,7 +71,7 @@ public class GrappleHandler : MonoBehaviour
             _grappleTimer += Time.deltaTime;
         }
 
-        if (_grappleTimer >= ActiveAbility.Cooldown)
+        if (_grappleTimer >= _currentCooldownDuration)
         {
             _isGrapplingOnCooldown = false;
             _grappleTimer = 0f;

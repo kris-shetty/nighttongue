@@ -8,6 +8,7 @@ public class PlayerController : StateMachine
     public JumpActionSO JumpAction;
     public MoveActionSO MoveAction;
     public GrappleAbilitySO GrappleAbility;
+    public SwingAbilitySO SwingAbility;
     public PlayerTimeSettingsSO TimeSettings;
     public GlobalPhysicsSettingsSO Settings;
     [SerializeField] private bool _usePrecisionMovement = false;
@@ -20,6 +21,7 @@ public class PlayerController : StateMachine
     public bool HasCoyoteBuffered = false;
     public bool HasJumpBuffered = false;
     public bool RequestedGrapple = false;
+    public bool RequestedSwing = false;
 
     // Buffer Timers
     private float _elapsedJumpBufferTime = 0f;
@@ -36,10 +38,18 @@ public class PlayerController : StateMachine
     public LayerMask WhatIsGrappable;
     public void SetGrappleTarget(Vector3 grappleTarget) { GrappleTargetPoint = grappleTarget; }
 
+    // Swing data
+    public Vector3 SwingTargetPoint { get; private set; }
+    public LayerMask WhatIsSwingable;
+    public float SwingRestLength;
+    public Vector3 SurfaceNormal;
+    public void SetSwingTarget(Vector3 swingTarget) { SwingTargetPoint = swingTarget; }
+
+
     public float2 Velocity;
     public bool IsJumpHeld { get; private set; }
 
-    private float _horizontalInput;
+    public float HorizontalInput;
     public GroundDetector GroundDetector;
     private CollideSlideCharacterCollisionResolver _collider;
     private PushOffOverhang _pushOff;
@@ -47,11 +57,8 @@ public class PlayerController : StateMachine
 
     private void HandleJumpRequested()
     {
-        Debug.Log($"HandleJumpRequested :: IsGrounded={GroundDetector.IsGrounded}, HasCoyoteBuffered={HasCoyoteBuffered}");
-
         if (GroundDetector.IsGrounded || HasCoyoteBuffered)
         {
-            Debug.Log("PlayerController :: Jump requested. Transitioning to JumpingState.");
             RequestedJump = true;
         }
         else
@@ -86,7 +93,6 @@ public class PlayerController : StateMachine
         if (HasCoyoteBuffered)
         {
             _elapsedCoyoteTime += Time.fixedDeltaTime;
-            Debug.Log($"PlayerController :: Coyote Time elapsed: {_elapsedCoyoteTime}");
             if (_elapsedCoyoteTime >= TimeSettings.CoyoteTime)
             {
                 HasCoyoteBuffered = false;
@@ -99,7 +105,6 @@ public class PlayerController : StateMachine
     {
         if (GroundDetector.WasGrounded)
         {
-            Debug.Log("PlayerController :: GroundDetector detected a loss of ground. Coyote Buffered");
             HasCoyoteBuffered = true;
             _elapsedCoyoteTime = 0f;
         }
@@ -112,18 +117,18 @@ public class PlayerController : StateMachine
 
     public void ApplyPrecisionMovement()
     {
-        float targetSpeed = _horizontalInput * MoveAction.MaxHorizontalSpeed;
+        float targetSpeed = HorizontalInput * MoveAction.MaxHorizontalSpeed;
         Velocity.x = targetSpeed;
     }
 
     public void ApplyMomentumMovement()
     {
-        float horizontalTargetSpeed = _horizontalInput * MoveAction.MaxHorizontalSpeed;
+        float horizontalTargetSpeed = HorizontalInput * MoveAction.MaxHorizontalSpeed;
         float currentSpeed = Velocity.x;
 
         // Determine if player is counter-strafing
-        bool isCounterStrafing = (_horizontalInput > Settings.FloatPrecisionThreshold && currentSpeed < 0)
-                                 || (_horizontalInput < -Settings.FloatPrecisionThreshold && currentSpeed > 0);
+        bool isCounterStrafing = (HorizontalInput > Settings.FloatPrecisionThreshold && currentSpeed < 0)
+                                 || (HorizontalInput < -Settings.FloatPrecisionThreshold && currentSpeed > 0);
 
         float acceleration = isCounterStrafing ? MoveAction.Deceleration : MoveAction.Acceleration;
 
@@ -131,9 +136,9 @@ public class PlayerController : StateMachine
         float speedDifference = horizontalTargetSpeed - currentSpeed;
         float accelerationChange = acceleration * Time.fixedDeltaTime;
 
-        if (Mathf.Abs(_horizontalInput) > Settings.FloatPrecisionThreshold)
+        if (Mathf.Abs(HorizontalInput) > Settings.FloatPrecisionThreshold)
         {
-            if (Mathf.Sign(currentSpeed) == Mathf.Sign(_horizontalInput))
+            if (Mathf.Sign(currentSpeed) == Mathf.Sign(HorizontalInput))
             {
                 // Moving in same direction as input
                 if (Mathf.Abs(currentSpeed) < Mathf.Abs(horizontalTargetSpeed))
@@ -186,7 +191,7 @@ public class PlayerController : StateMachine
     }
     public void ApplyFriction()
     {
-        if (Mathf.Abs(_horizontalInput) < Settings.FloatPrecisionThreshold)
+        if (Mathf.Abs(HorizontalInput) < Settings.FloatPrecisionThreshold)
         {
             if (Mathf.Abs(Velocity.x) < Settings.FloatPrecisionThreshold)
             {
@@ -299,6 +304,7 @@ public class PlayerController : StateMachine
         HandleOverhangPushOff();
     }
 
+    
     private void Awake()
     {
         ConstantGravityLateralDistance = (2 * JumpAction.MaxJumpLateralDistance * Mathf.Sqrt(JumpAction.FastFallMultiplier)) / (1 + Mathf.Sqrt(JumpAction.FastFallMultiplier));
@@ -326,7 +332,7 @@ public class PlayerController : StateMachine
         RequestedGrapple = false;
 
 
-        _horizontalInput = _inputHandler.MoveInput.x;
+        HorizontalInput = _inputHandler.MoveInput.x;
 
         // Subscribe to input events ONCE
         _inputHandler.OnJumpRequested += HandleJumpRequested;
@@ -347,7 +353,7 @@ public class PlayerController : StateMachine
 
     private void Update()
     {
-        _horizontalInput = _inputHandler.MoveInput.x;
+        HorizontalInput = _inputHandler.MoveInput.x;
         IsJumpHeld = _inputHandler.IsJumpHeld;
     }
 }

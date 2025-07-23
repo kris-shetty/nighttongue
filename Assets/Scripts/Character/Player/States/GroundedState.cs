@@ -29,6 +29,10 @@ public class GroundedState : BaseState
         {
             return new GrapplingState(_controller);
         }
+        if (_controller.RequestedSwing)
+        {
+            return new SwingingState(_controller);
+        }
         return null;
     }
 

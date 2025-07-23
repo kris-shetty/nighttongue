@@ -7,7 +7,7 @@ public class GrapplingState : BaseState
     private float _initialVerticalSpeed;
     private float _initialHorizontalSpeed;
     private Vector3 _grapplePoint;
-    private Vector3 _playerPos;
+    private Vector3 _initialPlayerPos;
     private GrappleAbilitySO _activeAbility;
     private CollideSlideCharacterCollisionResolver _collider;
     private float _grappleEntryTimer = 0f;
@@ -18,7 +18,7 @@ public class GrapplingState : BaseState
         _controller = controller;
         _collider = _controller.GetComponent<CollideSlideCharacterCollisionResolver>();
         _grapplePoint = _controller.GrappleTargetPoint;
-        _playerPos = _controller.transform.position;
+        _initialPlayerPos = _controller.transform.position;
         _grappleIgnoreDuration = _controller.Settings.GrappleIgnoreDuration;
         _activeAbility = _controller.GrappleAbility;
     }
@@ -33,7 +33,7 @@ public class GrapplingState : BaseState
             return highestPoint;
         }
 
-         float verticalDistance = _grapplePoint.y - _playerPos.y;
+         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         if(verticalDistance < 0)
         {
             highestPoint = _activeAbility.OvershootHeight;
@@ -49,8 +49,8 @@ public class GrapplingState : BaseState
     private void CalculateJumpVelocity()
     {
         float highestPoint = CalculateVerticalHeight();
-        float verticalDistance = _grapplePoint.y - _playerPos.y;
-        float horizontalDistance = _grapplePoint.x - _playerPos.x;
+        float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
+        float horizontalDistance = _grapplePoint.x - _initialPlayerPos.x;
         _initialVerticalSpeed = Mathf.Sqrt(-2 * _controller.JumpGravity * highestPoint);
         float timeUp = Mathf.Sqrt((-2 * highestPoint)/_controller.JumpGravity);
         float timeDown = Mathf.Sqrt((-2 * (highestPoint - verticalDistance) / _controller.FastFallGravity));
@@ -67,18 +67,13 @@ public class GrapplingState : BaseState
 
     private bool IsGrappleValid()
     {
-        if (_controller.GrappleTargetPoint == null)
-        {
-            Debug.LogError("GrapplingState :: Grapple target point is not set.");
-            return false;
-        }
-        float distanceToTarget = Vector3.Distance(_playerPos, _grapplePoint);
+        float distanceToTarget = Vector3.Distance(_initialPlayerPos, _grapplePoint);
         if (distanceToTarget > _activeAbility.MaxGrappleDistance)
         {
             Debug.LogWarning("GrapplingState :: Grapple target is out of range.");
             return false;
         }
-        return Physics.Raycast(_playerPos, (_grapplePoint - _playerPos).normalized, _activeAbility.MaxGrappleDistance, _controller.WhatIsGrappable);
+        return Physics.Raycast(_initialPlayerPos, (_grapplePoint - _initialPlayerPos).normalized, _activeAbility.MaxGrappleDistance, _controller.WhatIsGrappable);
     }
 
     public override void EnterState()
@@ -152,17 +147,24 @@ public class GrapplingState : BaseState
 
     public override BaseState GetNextState()
     {
+        if (_controller.RequestedGrapple)
+        {
+            return new GrapplingState(_controller);
+        }
+
+        if(_controller.RequestedSwing)
+        {
+              return new SwingingState(_controller);
+        }
+
+        if(_controller.RequestedJump || _controller.HasJumpBuffered)
+        {
+            return new JumpingState(_controller);
+        }
+
         if (_controller.GroundDetector.IsGrounded)
         {
-            if (_controller.HasCoyoteBuffered && _controller.RequestedJump)
-            {
-                return new JumpingState(_controller);
-            }
             return new GroundedState(_controller);
-        }
-        if(_controller.RequestedGrapple)
-        {             
-            return new GrapplingState(_controller);
         }
         else
         {

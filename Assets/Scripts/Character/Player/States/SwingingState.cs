@@ -1,21 +1,32 @@
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
 
 public class SwingingState : BaseState
 {
     private PlayerController _controller;
     private Vector3 _swingPoint;
     private SwingAbilitySO _activeAbility;
+    private float _swingRestLength;
 
-    public SwingingState(PlayerController controller)
+    private GrappleHandler _grappleHandler;
+    private SwingHandler _swingHandler;
+
+    public SwingingState(PlayerController controller, SwingAbilitySO swingAbility, Vector3 swingPoint)
     {
         _controller = controller;
-        _swingPoint = _controller.SwingTargetPoint;
-        _activeAbility = _controller.SwingAbility;
+        _activeAbility = swingAbility;
+        _swingPoint = swingPoint;
     }
 
     public override void EnterState()
     {
+        _grappleHandler = _controller.GetComponent<GrappleHandler>();
+        if (_grappleHandler == null)
+        {
+            Debug.LogError("SwingingState :: GrappleHandler component not found on PlayerController.");
+            return;
+        }
+        _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
+
         Debug.Log("Entering SwingingState; Yippee!");
         _controller.Gravity = _controller.FastFallGravity;
         if (!IsSwingValid())
@@ -30,7 +41,7 @@ public class SwingingState : BaseState
                 Debug.LogError("SwingingState :: No valid next state found after grapple validation. How the hell did you get here?");
             }
         }
-        _controller.SwingRestLength = (_controller.transform.position - _swingPoint).magnitude;
+        _swingRestLength = (_controller.transform.position - _swingPoint).magnitude;
         _controller.RequestedSwing = false;
         CalculateInitialTangentialVelocity();
     }
@@ -63,11 +74,6 @@ public class SwingingState : BaseState
             return new JumpingState(_controller);
         }
 
-        if (_controller.RequestedGrapple)
-        {
-            return new GrapplingState(_controller);
-        }
-
         if (!_controller.GroundDetector.IsGrounded)
         {
             return new FallingState(_controller);
@@ -80,8 +86,6 @@ public class SwingingState : BaseState
 
     public override void FixedUpdateState()
     {
-        _controller.RequestedSwing = false;
-        _controller.SetSwingTarget(_swingPoint);
         _controller.ApplyPhysics();
         ApplyPendulumPhysics();
         ApplySwingPlayerInput();
@@ -128,7 +132,7 @@ public class SwingingState : BaseState
         float currentLen = ropeVec.magnitude;
         Vector3 direction = ropeVec.normalized;
 
-        float targetLen = _controller.SwingRestLength;
+        float targetLen = _swingRestLength;
         float lengthDiff = currentLen - targetLen;
 
         Vector3 springForce = Vector3.zero;
@@ -192,7 +196,7 @@ public class SwingingState : BaseState
         Vector3 ropeDir = ropeVec.normalized;
         Vector3 tangentialDir = new Vector3(-ropeDir.y, ropeDir.x, 0);
 
-        float input = _controller.HorizontalInput * _controller.SwingAbility.UserControlForce;
+        float input = _controller.HorizontalInput * _activeAbility.UserControlForce;
         Vector3 inputForce = tangentialDir * input;
 
         _controller.Velocity.x += inputForce.x * Time.fixedDeltaTime;
@@ -212,7 +216,7 @@ public class SwingingState : BaseState
             float radialVel = Vector3.Dot(vel, ropeDir);
             Vector3 tangentialVel = vel - ropeDir * radialVel;
 
-            float dampingFactor = 1f - (_controller.SwingAbility.Damping * Time.fixedDeltaTime);
+            float dampingFactor = 1f - (_activeAbility.Damping * Time.fixedDeltaTime);
             dampingFactor = Mathf.Clamp01(dampingFactor);
 
             Vector3 dampedTangential = tangentialVel * dampingFactor;
@@ -222,10 +226,21 @@ public class SwingingState : BaseState
             _controller.Velocity.y = finalVel.y;
         }
     }
+    private void HandleGrappleRequest(GrappleAbilitySO ability, Vector3 grapplePoint)
+    {
+        BaseState nextState = new GrapplingState(_controller, ability, grapplePoint);
+        _controller.TransitionToState(nextState);
+    }
+
+    public override void ExitState() 
+    {
+        if (_grappleHandler != null)
+        {
+            _grappleHandler.OnGrappleRequested -= HandleGrappleRequest;
+        }
+    }
 
 
-
-    public override void ExitState() { }
     public override void OnTriggerEnter(Collider other) { }
     public override void OnTriggerStay(Collider other) { }
     public override void OnTriggerExit(Collider other) { }

@@ -33,18 +33,11 @@ public class PlayerController : StateMachine
     public float FastFallGravity;
     public float ConstantGravityLateralDistance;
 
-    // Grapple data
-    public Vector3 GrappleTargetPoint { get; private set; }
+    // Grapple Mask
     public LayerMask WhatIsGrappable;
-    public void SetGrappleTarget(Vector3 grappleTarget) { GrappleTargetPoint = grappleTarget; }
 
     // Swing data
-    public Vector3 SwingTargetPoint { get; private set; }
     public LayerMask WhatIsSwingable;
-    public float SwingRestLength;
-    public Vector3 SurfaceNormal;
-    public void SetSwingTarget(Vector3 swingTarget) { SwingTargetPoint = swingTarget; }
-
 
     public float2 Velocity;
     public bool IsJumpHeld { get; private set; }
@@ -315,6 +308,7 @@ public class PlayerController : StateMachine
 
         // Initialize starting state
         CurrentState = new GroundedState(this);
+        TransitionToState(CurrentState);
     }
 
     void Start()

@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class GrapplingState : BaseState
@@ -10,30 +9,34 @@ public class GrapplingState : BaseState
     private Vector3 _initialPlayerPos;
     private GrappleAbilitySO _activeAbility;
     private CollideSlideCharacterCollisionResolver _collider;
+    private GrappleHandler _grappleHandler;
     private float _grappleEntryTimer = 0f;
     private float _grappleIgnoreDuration = 0.05f;
 
-    public GrapplingState(PlayerController controller)
+    private SwingHandler _swingHandler;
+
+    public GrapplingState(PlayerController controller, GrappleAbilitySO grappleAbility, Vector3 grapplePoint)
     {
         _controller = controller;
+        
         _collider = _controller.GetComponent<CollideSlideCharacterCollisionResolver>();
-        _grapplePoint = _controller.GrappleTargetPoint;
+        if (_collider == null)
+        {
+            Debug.LogError("GrapplingState :: CollideSlideCharacterCollisionResolver component not found on PlayerController.");
+        }
+        
+
+        _grapplePoint = grapplePoint;
         _initialPlayerPos = _controller.transform.position;
         _grappleIgnoreDuration = _controller.Settings.GrappleIgnoreDuration;
-        _activeAbility = _controller.GrappleAbility;
+        _activeAbility = grappleAbility;
     }
 
     private float CalculateVerticalHeight()
     {
         float highestPoint = 0;
-        
-        if(_controller.GrappleTargetPoint == null)
-        {
-            Debug.LogError("Grapple target point is not set.");
-            return highestPoint;
-        }
-
-         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
+   
+        float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         if(verticalDistance < 0)
         {
             highestPoint = _activeAbility.OvershootHeight;
@@ -78,6 +81,21 @@ public class GrapplingState : BaseState
 
     public override void EnterState()
     {
+        _grappleHandler = _controller.GetComponent<GrappleHandler>();
+        if (_grappleHandler == null)
+        {
+            Debug.LogError("GrapplingState :: GrappleHandler component not found on PlayerController.");
+            return;
+        }
+        _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
+
+        _swingHandler = _controller.GetComponent<SwingHandler>();
+        if (_swingHandler == null)
+        {
+            Debug.LogError("GrapplingState :: SwingHandler component not found on PlayerController.");
+        }
+        _swingHandler.OnSwingRequested += HandleSwingRequest;
+
         Debug.Log("GrapplingState :: Is it in yet?");
         _collider.OnCollisionDetected += OnPlayerCollision;
         if (IsGrappleValid())
@@ -117,9 +135,34 @@ public class GrapplingState : BaseState
         }
     }
 
+    private void HandleGrappleRequest(GrappleAbilitySO ability, Vector3 grapplePoint)
+    {
+        BaseState nextState = new GrapplingState(_controller, ability, grapplePoint);
+        _controller.TransitionToState(nextState);
+    }
+
+    private void HandleSwingRequest(SwingAbilitySO ability, Vector3 swingPoint)
+    {
+        BaseState nextState = new SwingingState(_controller, ability, swingPoint);
+        _controller.TransitionToState(nextState);
+    }
+
     public override void ExitState()
     {
-        _collider.OnCollisionDetected -= OnPlayerCollision;
+        if (_controller != null)
+        {
+            _collider.OnCollisionDetected -= OnPlayerCollision;
+        }
+        
+        if (_grappleHandler != null)
+        {
+            _grappleHandler.OnGrappleRequested -= HandleGrappleRequest;
+        }
+
+        if (_swingHandler != null)
+        {
+            _swingHandler.OnSwingRequested -= HandleSwingRequest;
+        }
     }
 
     public override void UpdateState()
@@ -147,16 +190,6 @@ public class GrapplingState : BaseState
 
     public override BaseState GetNextState()
     {
-        if (_controller.RequestedGrapple)
-        {
-            return new GrapplingState(_controller);
-        }
-
-        if(_controller.RequestedSwing)
-        {
-              return new SwingingState(_controller);
-        }
-
         if(_controller.RequestedJump || _controller.HasJumpBuffered)
         {
             return new JumpingState(_controller);

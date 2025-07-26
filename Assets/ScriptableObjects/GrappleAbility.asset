@@ -15,7 +15,7 @@ MonoBehaviour:
   abilityName: 
   inputActionName: Player/Grapple
   icon: {fileID: 0}
-  MaxGrappleDistance: 10
+  MaxGrappleDistance: 20
   DelayTime: 0.25
-  Cooldown: 2
+  Cooldown: 0.25
   OvershootHeight: 1

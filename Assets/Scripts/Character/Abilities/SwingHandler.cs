@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class SwingHandler : MonoBehaviour
@@ -12,6 +13,8 @@ public class SwingHandler : MonoBehaviour
     public LayerMask WhatIsSwingable;
     private Vector3 _swingPoint;
     private float _currentCooldownDuration = 0f;
+
+    public event Action<SwingAbilitySO, Vector3> OnSwingRequested;
     public void ToggleSwing(SwingAbilitySO ability)
     {
         ActiveAbility = ability;
@@ -41,9 +44,7 @@ public class SwingHandler : MonoBehaviour
 
     private void ExecuteSwing()
     {
-        _playerController.SwingAbility = ActiveAbility;
-        _playerController.SetSwingTarget(_swingPoint);
-        _playerController.RequestedSwing = true;
+        OnSwingRequested?.Invoke(ActiveAbility, _swingPoint);
     }
 
     public void UntoggleSwing()

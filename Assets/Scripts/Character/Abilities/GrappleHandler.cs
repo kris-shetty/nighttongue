@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 public class GrappleHandler : MonoBehaviour
 {
@@ -12,6 +13,8 @@ public class GrappleHandler : MonoBehaviour
     private Vector3 _grapplePoint;
     private PlayerInputHandler _inputHandler;
     private float _currentCooldownDuration = 0f;
+
+    public event Action<GrappleAbilitySO, Vector3> OnGrappleRequested;
 
     public void ToggleGrapple(GrappleAbilitySO ability)
     {
@@ -45,16 +48,12 @@ public class GrappleHandler : MonoBehaviour
 
     private void ExecuteGrapple()
     {
-        _playerController.GrappleAbility = ActiveAbility;
-        _playerController.SetGrappleTarget(_grapplePoint);
-        _playerController.RequestedGrapple = true;
+        OnGrappleRequested?.Invoke(ActiveAbility, _grapplePoint);
     }
 
     public void UntoggleGrapple()
     {
-        _playerController.GrappleAbility = null;
-        _playerController.RequestedGrapple = false;   
-        _playerController.SetGrappleTarget(Vector3.zero);
+        Debug.Log("GrappleHandler :: Unsuccessful grapple.");
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created

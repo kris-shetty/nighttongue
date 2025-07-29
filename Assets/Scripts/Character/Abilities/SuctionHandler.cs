@@ -16,6 +16,14 @@ public class SuctionHandler : MonoBehaviour
     public LayerMask aimPlaneMask;
     public LineRenderer aimLine;
 
+    [Tooltip("Layers treated as obstacles that block suction")]
+    public LayerMask suctionObstructionMask;
+
+    [Header("Throw Arc Visualization")]
+    public LineRenderer throwArcRenderer;
+    public int arcPoints = 30;
+    public float arcTimeStep = 0.1f;
+
     private bool hasReachedHoldPointOnce = false;
     private bool _isSuctioning = false;
     private HashSet<Rigidbody> _suctionedObjects = new HashSet<Rigidbody>();
@@ -38,7 +46,7 @@ public class SuctionHandler : MonoBehaviour
     }
 
     void Update()
-    { 
+    {
         if (IsHoldingObject)
         {
             holdTimer += Time.deltaTime;
@@ -47,22 +55,26 @@ public class SuctionHandler : MonoBehaviour
             target.z = 0f;
             float distance = Vector3.Distance(heldObject.position, target);
 
-            // Drop if object was once close but now far again
             if (hasReachedHoldPointOnce && distance >= 1.5f)
             {
                 DropHeldObject();
                 return;
             }
-            
+
             heldObject.linearVelocity = Vector3.zero;
             heldObject.useGravity = false;
-
-            
             heldObject.MovePosition(target);
+
+            // Visualize the throw arc
+            VisualizeThrowArc();
         }
-        else if (_isSuctioning)
+        else
         {
-            TrySuctionObject();
+            throwArcRenderer.enabled = false; // Hide arc when not holding
+            if (_isSuctioning)
+            {
+                TrySuctionObject();
+            }
         }
     }
 
@@ -103,10 +115,16 @@ public class SuctionHandler : MonoBehaviour
 
                 if (angle < (activeAbility.suctionConeAngle / 2f))     
                 {
-                    if (Physics.Raycast(transform.position, objectionDirection, out RaycastHit hit, activeAbility.suctionRange, aimPlaneMask))
+                    Vector3 rayOrigin = suctionPoint.position;
+                    Vector3 rayDir = (collider.transform.position - rayOrigin).normalized;
+                    float rayDist = Vector3.Distance(rayOrigin, collider.transform.position);
+
+                    // Only proceed if there's no obstruction
+                    if (Physics.Raycast(rayOrigin, rayDir, rayDist, suctionObstructionMask))
                     {
-                        if (hit.collider != collider) continue; // Ensure the raycast hit the correct object
+                        continue; // Something is blocking the suction path
                     }
+
                     float distanceMultiplier = Mathf.Clamp01(1f - (distance / activeAbility.suctionRange));
                     float angleMultiplier = Mathf.Clamp01(1f - (angle / (activeAbility.suctionConeAngle / 2f)));
 
@@ -194,6 +212,54 @@ public class SuctionHandler : MonoBehaviour
         }
         float velocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * maxHeight);
         return velocity;
+    }
+
+    private void VisualizeThrowArc()
+    {
+        if (heldObject == null || throwArcRenderer == null) return;
+
+        ThrowableObject throwableObject = heldObject.GetComponent<ThrowableObject>();
+        if (throwableObject == null) return;
+
+        float maxVelocity = CalculateThrowVelocity(throwableObject.MaxVerticalHeight);
+        float multipler = Mathf.Clamp01(holdTimer / throwableObject.MaxHoldTime);
+        Vector3 direction = _tongueController.Direction.normalized;
+
+        float angle = Vector3.Angle(Vector3.up, direction);
+        Vector3 horizontalDir = new Vector3(Mathf.Sign(direction.x), 0f, 0f);
+
+        Vector3 v0 = new Vector3(
+            horizontalDir.x * maxVelocity * Mathf.Sin(angle * Mathf.Deg2Rad),
+            maxVelocity * Mathf.Cos(angle * Mathf.Deg2Rad),
+            0f
+        ) * multipler;
+
+        Vector3 startPos = heldObject.position;
+        throwArcRenderer.positionCount = arcPoints;
+
+        for (int i = 0; i < arcPoints; i++)
+        {
+            float t = i * arcTimeStep;
+            Vector3 pos = startPos + v0 * t + 0.5f * Physics.gravity * t * t;
+
+            // Raycast from previous point to current point
+            if (i > 0)
+            {
+                Vector3 prevPos = throwArcRenderer.GetPosition(i - 1);
+                Vector3 dir = pos - prevPos;
+                float dist = dir.magnitude;
+
+                if (Physics.Raycast(prevPos, dir.normalized, dist, suctionObstructionMask))
+                {
+                    throwArcRenderer.positionCount = i;
+                    break;
+                }
+            }
+
+            throwArcRenderer.SetPosition(i, pos);
+        }
+
+        throwArcRenderer.enabled = true;
     }
 
     private void OnDrawGizmos()

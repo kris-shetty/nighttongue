@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class SuctionHandler : MonoBehaviour
 {
-    private Rigidbody heldObject;
-    private float holdTimer;
-    private SuctionThrowAbilitySO activeAbility;
+    private Rigidbody _heldObject;
+    private float _holdTimer;
+    private SuctionThrowAbilitySO _activeAbility;
     private MoveActionSO _moveAction;
     private GameObject _tongue;
     private TongueController _tongueController;
@@ -24,38 +23,37 @@ public class SuctionHandler : MonoBehaviour
     public int arcPoints = 30;
     public float arcTimeStep = 0.1f;
 
-    private bool hasReachedHoldPointOnce = false;
+    private bool _hasReachedHoldPointOnce = false;
     private bool _isSuctioning = false;
     private HashSet<Rigidbody> _suctionedObjects = new HashSet<Rigidbody>();
 
-    public bool IsHoldingObject => heldObject != null;
+    public bool IsHoldingObject => _heldObject != null;
 
     public void BeginSuction(SuctionThrowAbilitySO ability)
     {
-        activeAbility = ability;
+        _activeAbility = ability;
         _isSuctioning = !IsHoldingObject;
     }
 
-
-    void Update()
+    private void Update()
     {
         if (IsHoldingObject)
         {
-            holdTimer += Time.deltaTime;
+            _holdTimer += Time.deltaTime;
 
             Vector3 target = _tongueController.EndPoint;
             target.z = 0f;
-            float distance = Vector3.Distance(heldObject.position, target);
+            float distance = Vector3.Distance(_heldObject.position, target);
 
-            if (hasReachedHoldPointOnce && distance >= 1.5f)
+            if (_hasReachedHoldPointOnce && distance >= 1.5f)
             {
                 DropHeldObject();
                 return;
             }
 
-            heldObject.linearVelocity = Vector3.zero;
-            heldObject.useGravity = false;
-            heldObject.MovePosition(target);
+            _heldObject.linearVelocity = Vector3.zero;
+            _heldObject.useGravity = false;
+            _heldObject.MovePosition(target);
 
             // Visualize the throw arc
             VisualizeThrowArc();
@@ -63,6 +61,7 @@ public class SuctionHandler : MonoBehaviour
         else
         {
             throwArcRenderer.enabled = false; // Hide arc when not holding
+
             if (_isSuctioning)
             {
                 TrySuctionObject();
@@ -70,24 +69,24 @@ public class SuctionHandler : MonoBehaviour
         }
     }
 
-    void DropHeldObject()
+    private void DropHeldObject()
     {
-        if (heldObject != null)
+        if (_heldObject != null)
         {
-            heldObject.useGravity = true;
-            heldObject = null;
-            holdTimer = 0f;
-            hasReachedHoldPointOnce = false;
+            _heldObject.useGravity = true;
+            _heldObject = null;
+            _holdTimer = 0f;
+            _hasReachedHoldPointOnce = false;
         }
     }
 
-    void TrySuctionObject()
+    private void TrySuctionObject()
     {
         Vector3 direction = _tongueController.Direction;
 
         HashSet<Rigidbody> currentFrameSuctioned = new HashSet<Rigidbody>();
 
-        Collider[] colliders = Physics.OverlapSphere(transform.position, activeAbility.suctionRange);
+        Collider[] colliders = Physics.OverlapSphere(transform.position, _activeAbility.SuctionRange);
 
         foreach (Collider collider in colliders)
         {
@@ -95,57 +94,55 @@ public class SuctionHandler : MonoBehaviour
             {
                 continue; // Skip if no Rigidbody or ThrowableObject component
             }
+
+            Rigidbody rb = collider.GetComponent<Rigidbody>();
+            Vector3 objectDirection = (collider.transform.position - transform.position);
+            objectDirection.z = 0f;
+            objectDirection = objectDirection.normalized;
+
+            float angle = Vector3.Angle(direction, objectDirection);
+            float distance = Vector3.Distance(collider.transform.position, transform.position);
+
+            if (angle < (_activeAbility.SuctionConeAngle / 2f))
+            {
+                Vector3 rayOrigin = suctionPoint.position;
+                Vector3 rayDir = (collider.transform.position - rayOrigin).normalized;
+                float rayDist = Vector3.Distance(rayOrigin, collider.transform.position);
+
+                // Only proceed if there's no obstruction
+                if (Physics.Raycast(rayOrigin, rayDir, rayDist, suctionObstructionMask))
+                {
+                    continue; // Something is blocking the suction path
+                }
+
+                float distanceMultiplier = Mathf.Clamp01(1f - (distance / _activeAbility.SuctionRange));
+                float angleMultiplier = Mathf.Clamp01(1f - (angle / (_activeAbility.SuctionConeAngle / 2f)));
+
+                Vector3 forceDirection = (transform.position - collider.transform.position).normalized;
+                float totalForce = distanceMultiplier * angleMultiplier * _activeAbility.SuctionForce;
+
+                rb.useGravity = false; // Disable gravity while suctioning
+                rb.AddForce(forceDirection * totalForce, ForceMode.Force);
+
+                currentFrameSuctioned.Add(rb);
+
+                if (distance <= 2.0f && _heldObject == null)
+                {
+                    _isSuctioning = false;
+                    _heldObject = rb;
+                    _heldObject.linearVelocity = Vector3.zero;
+                    _hasReachedHoldPointOnce = true;
+
+                    return; // Exit after holding the first valid object
+                }
+            }
             else
             {
-                Rigidbody rb = collider.GetComponent<Rigidbody>();
-                Vector3 objectionDirection = (collider.transform.position - transform.position);
-                objectionDirection.z = 0f;
-                objectionDirection = objectionDirection.normalized;
-
-                float angle = Vector3.Angle(direction, objectionDirection);
-                float distance = Vector3.Distance(collider.transform.position, transform.position);
-
-                if (angle < (activeAbility.suctionConeAngle / 2f))     
+                // Only restore gravity if this object was previously being suctioned
+                if (_suctionedObjects.Contains(rb))
                 {
-                    Vector3 rayOrigin = suctionPoint.position;
-                    Vector3 rayDir = (collider.transform.position - rayOrigin).normalized;
-                    float rayDist = Vector3.Distance(rayOrigin, collider.transform.position);
-
-                    // Only proceed if there's no obstruction
-                    if (Physics.Raycast(rayOrigin, rayDir, rayDist, suctionObstructionMask))
-                    {
-                        continue; // Something is blocking the suction path
-                    }
-
-                    float distanceMultiplier = Mathf.Clamp01(1f - (distance / activeAbility.suctionRange));
-                    float angleMultiplier = Mathf.Clamp01(1f - (angle / (activeAbility.suctionConeAngle / 2f)));
-
-                    Vector3 forceDirection = (transform.position - collider.transform.position).normalized;
-                    float totalForce = distanceMultiplier * angleMultiplier * activeAbility.suctionForce;
-
-                    rb.useGravity = false; // Disable gravity while suctioning
-                    rb.AddForce(forceDirection * totalForce, ForceMode.Force);
-
-                    currentFrameSuctioned.Add(rb);
-
-                    if (distance <= 2.0f && heldObject == null)
-                    {
-                        _isSuctioning = false; 
-                        heldObject = rb;
-                        heldObject.linearVelocity = Vector3.zero;
-                        hasReachedHoldPointOnce = true;
-
-                        return; // Exit after holding the first valid object
-                    }
-                }
-                else
-                {
-                    // Only restore gravity if this object was previously being suctioned
-                    if (_suctionedObjects.Contains(rb))
-                    {
-                        rb.useGravity = true;
-                        rb.linearVelocity = Vector3.zero;
-                    }
+                    rb.useGravity = true;
+                    rb.linearVelocity = Vector3.zero;
                 }
             }
         }
@@ -165,19 +162,20 @@ public class SuctionHandler : MonoBehaviour
 
     public void ThrowHeldObject()
     {
-        if (heldObject != null)
+        if (_heldObject != null)
         {
-            hasReachedHoldPointOnce = false;
+            _hasReachedHoldPointOnce = false;
 
             Vector3 direction = _tongueController.Direction;
 
-            heldObject.useGravity = true;
+            _heldObject.useGravity = true;
 
-            ThrowableObject throwableObject = heldObject.GetComponent<ThrowableObject>();
+            ThrowableObject throwableObject = _heldObject.GetComponent<ThrowableObject>();
             if (throwableObject == null)
             {
                 return;
             }
+
             float maxVelocity = CalculateThrowVelocity(throwableObject.MaxVerticalHeight);
             float angle = Vector3.Angle(Vector3.up, direction);
 
@@ -188,11 +186,11 @@ public class SuctionHandler : MonoBehaviour
 
             Vector3 finalVelocity = verticalVelocity + horizontalVelocity;
 
-            float multipler = Mathf.Clamp01(holdTimer / throwableObject.MaxHoldTime);
-            heldObject.AddForce(finalVelocity * multipler, ForceMode.VelocityChange);
+            float multiplier = Mathf.Clamp01(_holdTimer / throwableObject.MaxHoldTime);
+            _heldObject.AddForce(finalVelocity * multiplier, ForceMode.VelocityChange);
 
-            heldObject = null;
-            holdTimer = 0;
+            _heldObject = null;
+            _holdTimer = 0f;
             _isSuctioning = false;
         }
         else if (_isSuctioning)
@@ -212,23 +210,30 @@ public class SuctionHandler : MonoBehaviour
 
     private float CalculateThrowVelocity(float maxHeight)
     {
-        if (heldObject == null)
+        if (_heldObject == null)
         {
             return 0f;
         }
+
         float velocity = Mathf.Sqrt(2f * Mathf.Abs(Physics.gravity.y) * maxHeight);
         return velocity;
     }
 
     private void VisualizeThrowArc()
     {
-        if (heldObject == null || throwArcRenderer == null) return;
+        if (_heldObject == null || throwArcRenderer == null)
+        {
+            return;
+        }
 
-        ThrowableObject throwableObject = heldObject.GetComponent<ThrowableObject>();
-        if (throwableObject == null) return;
+        ThrowableObject throwableObject = _heldObject.GetComponent<ThrowableObject>();
+        if (throwableObject == null)
+        {
+            return;
+        }
 
         float maxVelocity = CalculateThrowVelocity(throwableObject.MaxVerticalHeight);
-        float multipler = Mathf.Clamp01(holdTimer / throwableObject.MaxHoldTime);
+        float multiplier = Mathf.Clamp01(_holdTimer / throwableObject.MaxHoldTime);
         Vector3 direction = _tongueController.Direction.normalized;
 
         float angle = Vector3.Angle(Vector3.up, direction);
@@ -238,9 +243,9 @@ public class SuctionHandler : MonoBehaviour
             horizontalDir.x * maxVelocity * Mathf.Sin(angle * Mathf.Deg2Rad),
             maxVelocity * Mathf.Cos(angle * Mathf.Deg2Rad),
             0f
-        ) * multipler;
+        ) * multiplier;
 
-        Vector3 startPos = heldObject.position;
+        Vector3 startPos = _heldObject.position;
         throwArcRenderer.positionCount = arcPoints;
 
         for (int i = 0; i < arcPoints; i++)

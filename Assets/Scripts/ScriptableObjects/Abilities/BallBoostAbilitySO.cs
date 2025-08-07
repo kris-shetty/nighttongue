@@ -1,17 +1,19 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 [CreateAssetMenu(menuName = "Abilities/Ball Abilities/Boost on Transform")]
 public class BallBoostAbilitySO : BallAbilitySO
 {
-    public float boostForce = 20f;
+    [FormerlySerializedAs("boostForce")]
+    public float BoostForce = 20f;
 
-    public override void OnEnterBallForm(GameObject player)
+    public override void OnEnterBallForm(GameObject user)
     {
-        var handler = player.GetComponent<BallTransformHandler>();
-        if (handler != null && handler.ballRigidbody != null)
+        var handler = user.GetComponent<BallTransformHandler>();
+        if (handler != null && handler.BallRigidbody != null)
         {
-            Vector3 forward = player.transform.forward;
-            handler.ballRigidbody.AddForce(forward * boostForce, ForceMode.Impulse);
+            Vector3 forward = user.transform.forward;
+            handler.BallRigidbody.AddForce(forward * BoostForce, ForceMode.Impulse);
         }
     }
 }

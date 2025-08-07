@@ -1,16 +1,20 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 public class AbilityUser : MonoBehaviour
 {
-    public InputActionAsset inputActions;
-    public AbilitySO[] abilities;
+    [FormerlySerializedAs("inputActions")]
+    public InputActionAsset InputActions;
+
+    [FormerlySerializedAs("abilities")]
+    public AbilitySO[] Abilities;
 
     private void OnEnable()
     {
-        foreach (var ability in abilities)
+        foreach (var ability in Abilities)
         {
-            var action = inputActions.FindAction(ability.inputActionName, true);
+            var action = InputActions.FindAction(ability.InputActionName, true);
             if (action != null)
             {
                 action.started += ctx => ability.OnPress(gameObject);
@@ -23,9 +27,9 @@ public class AbilityUser : MonoBehaviour
 
     private void OnDisable()
     {
-        foreach (var ability in abilities)
+        foreach (var ability in Abilities)
         {
-            var action = inputActions.FindAction(ability.inputActionName, true);
+            var action = InputActions.FindAction(ability.InputActionName, true);
             if (action != null)
             {
                 action.started -= ctx => ability.OnPress(gameObject);
@@ -36,4 +40,3 @@ public class AbilityUser : MonoBehaviour
         }
     }
 }
-

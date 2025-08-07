@@ -5793,8 +5793,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10c1a6a6bc4ec443f9c764c6f93ced8d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  abilities:
+  InputActions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  Abilities:
   - {fileID: 11400000, guid: aac55bde351004318b11ee6fd591c90a, type: 2}
   - {fileID: 11400000, guid: 5f1206bed886c0a4694a6e29b9b55d6e, type: 2}
   - {fileID: 11400000, guid: fdf2c0b70b98de545a43ce2de63bc02e, type: 2}
@@ -5815,7 +5815,7 @@ MonoBehaviour:
   aimPlaneMask:
     serializedVersion: 2
     m_Bits: 128
-  aimLine: {fileID: 1207465345}
+  aimLine: {fileID: 0}
   suctionObstructionMask:
     serializedVersion: 2
     m_Bits: 64
@@ -5917,14 +5917,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a77d17032e91c41c0a1b5fb8a2d68a14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerController: {fileID: 1983523211}
-  humanoidRigidbody: {fileID: 1983523197}
-  ballRigidbody: {fileID: 687908963}
-  humanoidModel: {fileID: 1405851484}
-  ballModel: {fileID: 687908958}
-  rollForce: 10
-  maxSpeed: 15
-  ballAbilities:
+  _playerController: {fileID: 1983523211}
+  _humanoidRigidbody: {fileID: 1983523197}
+  BallRigidbody: {fileID: 687908963}
+  HumanoidModel: {fileID: 1405851484}
+  BallModel: {fileID: 687908958}
+  RollForce: 10
+  MaxSpeed: 15
+  BallAbilities:
   - {fileID: 11400000, guid: 11eb7f15c77bc46ef89a07f72fb9de71, type: 2}
 --- !u!1 &1999403938
 GameObject:

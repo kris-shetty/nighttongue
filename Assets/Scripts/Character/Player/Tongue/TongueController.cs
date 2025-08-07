@@ -4,12 +4,14 @@ using UnityEngine.InputSystem;
 public class TongueController : MonoBehaviour
 {
     [SerializeField] private LayerMask _aimPlaneMask;
+
     private LineRenderer _tongue;
-    public float TongueLength = 2f;
     private GameObject _player;
+
+    public float TongueLength = 2f;
     public Vector3 EndPoint;
     public Vector3 Direction;
-    
+
     private Vector3 GetMouseWorldPos()
     {
         Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
@@ -17,12 +19,14 @@ public class TongueController : MonoBehaviour
         {
             return hit.point;
         }
+
         return _player.transform.position;
     }
 
-    void UpdateAim()
+    private void UpdateAim()
     {
         Vector3 mouseWorldPos = GetMouseWorldPos();
+
         Direction = (mouseWorldPos - _player.transform.position);
         Direction.z = 0f;
         Direction = Direction.normalized;
@@ -30,9 +34,10 @@ public class TongueController : MonoBehaviour
         EndPoint = _player.transform.position + Direction * TongueLength;
     }
 
-    void UpdateTongueAim()
+    private void UpdateTongueAim()
     {
         UpdateAim();
+
         _tongue.SetPosition(0, _player.transform.position);
         _tongue.SetPosition(1, EndPoint);
         _tongue.startWidth = 0.5f;
@@ -46,22 +51,22 @@ public class TongueController : MonoBehaviour
 
         if (_tongue == null)
         {
-            Debug.LogError("TongueController :: LineRenderer component is missing from the TongueController.");
+            Debug.LogError("TongueController: LineRenderer component is missing from the TongueController.");
         }
 
         if (_player == null)
         {
-            Debug.LogError("TongueController :: Player GameObject not found. Ensure it has the 'Player' tag.");
+            Debug.LogError("TongueController: Player GameObject not found. Ensure it has the 'Player' tag.");
         }
     }
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Start()
     {
-        
     }
 
     // Update is called once per frame
-    void Update()
+    private void Update()
     {
         UpdateTongueAim();
     }

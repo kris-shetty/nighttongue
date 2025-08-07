@@ -13,7 +13,9 @@ public class AbilityUser : MonoBehaviour
             var action = inputActions.FindAction(ability.inputActionName, true);
             if (action != null)
             {
-                action.performed += ctx => ability.Activate(gameObject);
+                action.started += ctx => ability.OnPress(gameObject);
+                action.performed += ctx => ability.OnHold(gameObject);
+                action.canceled += ctx => ability.OnRelease(gameObject);
                 action.Enable();
             }
         }
@@ -26,9 +28,12 @@ public class AbilityUser : MonoBehaviour
             var action = inputActions.FindAction(ability.inputActionName, true);
             if (action != null)
             {
-                action.performed -= ctx => ability.Activate(gameObject);
+                action.started -= ctx => ability.OnPress(gameObject);
+                action.performed -= ctx => ability.OnHold(gameObject);
+                action.canceled -= ctx => ability.OnRelease(gameObject);
                 action.Disable();
             }
         }
     }
 }
+

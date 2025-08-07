@@ -30,20 +30,12 @@ public class SuctionHandler : MonoBehaviour
 
     public bool IsHoldingObject => heldObject != null;
 
-    public void ToggleSuction(SuctionThrowAbilitySO ability)
+    public void BeginSuction(SuctionThrowAbilitySO ability)
     {
         activeAbility = ability;
-
-        if (IsHoldingObject)
-        {
-            ThrowHeldObject();
-            _isSuctioning = false;
-        }
-        else
-        {
-            _isSuctioning = true;
-        }
+        _isSuctioning = !IsHoldingObject;
     }
+
 
     void Update()
     {
@@ -171,7 +163,7 @@ public class SuctionHandler : MonoBehaviour
         _suctionedObjects = currentFrameSuctioned;
     }
 
-    void ThrowHeldObject()
+    public void ThrowHeldObject()
     {
         if (heldObject != null)
         {
@@ -201,6 +193,20 @@ public class SuctionHandler : MonoBehaviour
 
             heldObject = null;
             holdTimer = 0;
+            _isSuctioning = false;
+        }
+        else if (_isSuctioning)
+        {
+            Debug.Log("Cancelling suction before object was held.");
+            _isSuctioning = false;
+
+            foreach (var rb in _suctionedObjects)
+            {
+                rb.useGravity = true;
+                rb.linearVelocity = Vector3.zero;
+            }
+
+            _suctionedObjects.Clear();
         }
     }
 

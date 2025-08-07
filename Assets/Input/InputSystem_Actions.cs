@@ -113,7 +113,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""Attack"",
                     ""type"": ""Button"",
                     ""id"": ""6c2ab1b8-8984-453a-af3d-a3c78ae1679a"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -194,6 +194,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""name"": ""Swing"",
                     ""type"": ""Button"",
                     ""id"": ""460647e3-6bb6-4d56-9dfc-0e83774be3b1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleBallForm"",
+                    ""type"": ""Button"",
+                    ""id"": ""0f4e99f2-7fff-4ce4-be7c-56da1516775d"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -605,6 +614,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Swing"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""34751066-fce5-4a08-95cb-22e84bdbd164"",
+                    ""path"": ""<Keyboard>/b"",
+                    ""interactions"": ""Press"",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""ToggleBallForm"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1204,6 +1224,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_SuctionThrow = m_Player.FindAction("SuctionThrow", throwIfNotFound: true);
         m_Player_Grapple = m_Player.FindAction("Grapple", throwIfNotFound: true);
         m_Player_Swing = m_Player.FindAction("Swing", throwIfNotFound: true);
+        m_Player_ToggleBallForm = m_Player.FindAction("ToggleBallForm", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1309,6 +1330,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SuctionThrow;
     private readonly InputAction m_Player_Grapple;
     private readonly InputAction m_Player_Swing;
+    private readonly InputAction m_Player_ToggleBallForm;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1368,6 +1390,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Swing".
         /// </summary>
         public InputAction @Swing => m_Wrapper.m_Player_Swing;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/ToggleBallForm".
+        /// </summary>
+        public InputAction @ToggleBallForm => m_Wrapper.m_Player_ToggleBallForm;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1430,6 +1456,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Swing.started += instance.OnSwing;
             @Swing.performed += instance.OnSwing;
             @Swing.canceled += instance.OnSwing;
+            @ToggleBallForm.started += instance.OnToggleBallForm;
+            @ToggleBallForm.performed += instance.OnToggleBallForm;
+            @ToggleBallForm.canceled += instance.OnToggleBallForm;
         }
 
         /// <summary>
@@ -1477,6 +1506,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Swing.started -= instance.OnSwing;
             @Swing.performed -= instance.OnSwing;
             @Swing.canceled -= instance.OnSwing;
+            @ToggleBallForm.started -= instance.OnToggleBallForm;
+            @ToggleBallForm.performed -= instance.OnToggleBallForm;
+            @ToggleBallForm.canceled -= instance.OnToggleBallForm;
         }
 
         /// <summary>
@@ -1861,6 +1893,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSwing(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ToggleBallForm" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnToggleBallForm(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

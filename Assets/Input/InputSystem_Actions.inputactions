@@ -112,15 +112,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "ToggleBallForm",
-                    "type": "Button",
-                    "id": "0f4e99f2-7fff-4ce4-be7c-56da1516775d",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -528,17 +519,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Swing",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "34751066-fce5-4a08-95cb-22e84bdbd164",
-                    "path": "<Keyboard>/b",
-                    "interactions": "Press",
-                    "processors": "",
-                    "groups": ";Keyboard&Mouse",
-                    "action": "ToggleBallForm",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

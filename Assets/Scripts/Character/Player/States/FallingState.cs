@@ -1,20 +1,28 @@
 using UnityEngine;
 
-public class FallingState : BaseState
+public class FallingState : PlayerState
 {
-    private PlayerController _controller;
-    
     private GrappleHandler _grappleHandler;
     private SwingHandler _swingHandler;
+    private TongueTransformHandler _tongueTransformHandler;
 
-    public FallingState(PlayerController controller)
+    private MoveActionSO dynamicMoveAction;
+    protected override MoveActionSO MoveActionOverride => dynamicMoveAction;
+
+    private JumpActionSO dynamicJumpAction;
+    protected override JumpActionSO JumpActionOverride => dynamicJumpAction;
+
+    public FallingState(PlayerController controller, MoveActionSO move = null, JumpActionSO jump = null)
     {
-        _controller = controller;
+        Context = controller;
+        dynamicMoveAction = move;
+        dynamicJumpAction = jump;
     }
 
     public override void EnterState()
     { 
-        _grappleHandler = _controller.GetComponent<GrappleHandler>();
+        InitializeGravity();
+        _grappleHandler = Context.GetComponent<GrappleHandler>();
         if(_grappleHandler == null )
         {
             Debug.Log("FallingState :: GrappleHandler component not found on PlayerController.");
@@ -22,7 +30,7 @@ public class FallingState : BaseState
         }
         _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
 
-        _swingHandler = _controller.GetComponent<SwingHandler>();
+        _swingHandler = Context.GetComponent<SwingHandler>();
         if(_swingHandler == null)
         {
             Debug.Log("FallingState :: SwingHandler component not found on PlayerController.");
@@ -30,34 +38,41 @@ public class FallingState : BaseState
         }
         _swingHandler.OnSwingRequested += HandleSwingRequest;
 
-        _controller.Gravity = _controller.FastFallGravity;
-        _controller.ActivateCoyoteTime();
+        _tongueTransformHandler = Context.GetComponent<TongueTransformHandler>();
+        if (_tongueTransformHandler == null)
+        {
+            Debug.LogError("GroundedState :: TongueTransformHandler component not found on PlayerController.");
+            return;
+        }
+        _tongueTransformHandler.OnTransformStateChanged += HandleTransformRequest;
+
+        Context.ActivateCoyoteTime();
     }
 
     public override void FixedUpdateState()
     {
-        _controller.ApplyPhysics();
-        _controller.HandleGroundedMovementLogic();
-        _controller.UpdateBuffers();
+        Context.ApplyPhysics();
+        Context.HandleGroundedMovementLogic(ActiveMoveAction, Gravity);
+        Context.UpdateBuffers();
         BaseState nextState = GetNextState();
         if (nextState != null)
         {
-            _controller.TransitionToState(nextState);
+            Context.TransitionToState(nextState);
         }
-        _controller.SimulateStep();
+        Context.SimulateStep();
     }
 
     public override BaseState GetNextState()
     {
-        if (_controller.GroundDetector.IsGrounded)
+        if (Context.GroundDetector.IsGrounded)
         {
-            return new GroundedState(_controller);
+            return new GroundedState(Context);
         }
 
         // Check for coyote jump
-        if (_controller.HasCoyoteBuffered && _controller.RequestedJump)
+        if (Context.HasCoyoteBuffered && Context.RequestedJump)
         {
-            return new JumpingState(_controller);
+            return new JumpingState(Context);
         }
 
         return null; // Stay in FallingState
@@ -73,16 +88,28 @@ public class FallingState : BaseState
         {
             _swingHandler.OnSwingRequested -= HandleSwingRequest;
         }
+
+        if (_tongueTransformHandler != null)
+        {
+            _tongueTransformHandler.OnTransformStateChanged -= HandleTransformRequest;
+        }
     }
 
     private void HandleGrappleRequest(GrappleAbilitySO grappleAbility, Vector3 grapplePoint)
     {
-        _controller.TransitionToState(new GrapplingState(_controller, grappleAbility, grapplePoint));
+        Context.TransitionToState(new GrapplingState(Context, grappleAbility, grapplePoint));
     }
 
     private void HandleSwingRequest(SwingAbilitySO swingAbility, Vector3 swingPoint)
     {
-        _controller.TransitionToState(new SwingingState(_controller, swingAbility, swingPoint));
+        Context.TransitionToState(new SwingingState(Context, swingAbility, swingPoint));
+    }
+
+    private void HandleTransformRequest(TongueTransformEventArgs args)
+    {
+        dynamicMoveAction = args.MoveAction;
+        dynamicJumpAction = args.JumpAction;
+        InitializeGravity();
     }
 
     public override void UpdateState() { }

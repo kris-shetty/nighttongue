@@ -1,27 +1,36 @@
 using UnityEngine;
 
-public class GroundedState : BaseState
+public class GroundedState : PlayerState
 {
-    private PlayerController _controller;
-    
     private GrappleHandler _grappleHandler;
     private SwingHandler _swingHandler;
+    private TongueTransformHandler _tongueTransformHandler;
 
-    public GroundedState(PlayerController controller)
+    private MoveActionSO dynamicMoveAction;
+    protected override MoveActionSO MoveActionOverride => dynamicMoveAction;
+
+    private JumpActionSO dynamicJumpAction;
+    protected override JumpActionSO JumpActionOverride => dynamicJumpAction;
+
+    public GroundedState(PlayerController controller, MoveActionSO move = null, JumpActionSO jump = null)
     {
-        _controller = controller;
+        Context = controller;
+        dynamicMoveAction = move;
+        dynamicJumpAction = jump;
     }
 
     public override void EnterState()
     {
-        _grappleHandler = _controller.GetComponent<GrappleHandler>();
+        InitializeGravity();
+
+        _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler != null)
         {
             _grappleHandler.OnGrappleRequested -= HandleGrappleRequest;
         }
         _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
 
-        _swingHandler = _controller.GetComponent<SwingHandler>();
+        _swingHandler = Context.GetComponent<SwingHandler>();
         if (_swingHandler == null)
         {
             Debug.LogError("GroundedState :: SwingHandler component not found on PlayerController.");
@@ -29,44 +38,50 @@ public class GroundedState : BaseState
         }
         _swingHandler.OnSwingRequested += HandleSwingRequest;
 
-        _controller.Gravity = _controller.FastFallGravity;
+        _tongueTransformHandler = Context.GetComponent<TongueTransformHandler>();
+        if (_tongueTransformHandler == null)
+        {
+            Debug.LogError("GroundedState :: TongueTransformHandler component not found on PlayerController.");
+            return;
+        }
+        _tongueTransformHandler.OnTransformStateChanged += HandleTransformRequest;
     }
 
     private void HandleGrappleRequest(GrappleAbilitySO grappleAbility, Vector3 grapplePoint)
     {
-        _controller.TransitionToState(new GrapplingState(_controller, grappleAbility, grapplePoint));
+        Context.TransitionToState(new GrapplingState(Context, grappleAbility, grapplePoint));
     }
 
     private void HandleSwingRequest(SwingAbilitySO swingAbility, Vector3 swingPoint)
     {
-        _controller.TransitionToState(new SwingingState(_controller, swingAbility, swingPoint));
+        Context.TransitionToState(new SwingingState(Context, swingAbility, swingPoint));
     }
 
     public override BaseState GetNextState()
     {
         // Check for jump request or buffered jump
-        if (_controller.RequestedJump || _controller.HasJumpBuffered)
+        if (Context.RequestedJump || Context.HasJumpBuffered)
         {
-            return new JumpingState(_controller);
+            return new JumpingState(Context, ActiveMoveAction, ActiveJumpAction);
         }
-        if (!_controller.GroundDetector.IsGrounded)
+        if (!Context.GroundDetector.IsGrounded)
         {
-            return new FallingState(_controller);
+            return new FallingState(Context, ActiveMoveAction, ActiveJumpAction);
         }
         return null;
     }
 
     public override void FixedUpdateState()
     {
-        _controller.ApplyPhysics();
-        _controller.HandleGroundedMovementLogic();
-        _controller.UpdateBuffers(); 
+        Context.ApplyPhysics();
+        Context.HandleGroundedMovementLogic(ActiveMoveAction, Gravity);
+        Context.UpdateBuffers(); 
         BaseState nextState = GetNextState();
         if (nextState != null)
         {
-            _controller.TransitionToState(nextState);
+            Context.TransitionToState(nextState);
         }
-        _controller.SimulateStep();
+        Context.SimulateStep();
     }
 
     public override void ExitState()
@@ -80,10 +95,22 @@ public class GroundedState : BaseState
         {
             _swingHandler.OnSwingRequested -= HandleSwingRequest;
         }
+
+        if(_tongueTransformHandler != null)
+        {
+            _tongueTransformHandler.OnTransformStateChanged -= HandleTransformRequest;
+        }
         // Clear jump flags when leaving ground
-        _controller.RequestedJump = false;
-        _controller.HasCoyoteBuffered = false;
-        _controller.HasJumpBuffered = false;
+        Context.RequestedJump = false;
+        Context.HasCoyoteBuffered = false;
+        Context.HasJumpBuffered = false;
+    }
+
+    private void HandleTransformRequest(TongueTransformEventArgs args)
+    {
+        dynamicMoveAction = args.MoveAction;
+        dynamicJumpAction = args.JumpAction;
+        InitializeGravity();
     }
 
     public override void UpdateState() { }

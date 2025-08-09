@@ -1,8 +1,7 @@
 using UnityEngine;
 
-public class SwingingState : BaseState
+public class SwingingState : PlayerState
 {
-    private PlayerController _controller;
     private Vector3 _swingPoint;
     private SwingAbilitySO _activeAbility;
     private float _swingRestLength;
@@ -12,14 +11,15 @@ public class SwingingState : BaseState
 
     public SwingingState(PlayerController controller, SwingAbilitySO swingAbility, Vector3 swingPoint)
     {
-        _controller = controller;
+        Context = controller;
         _activeAbility = swingAbility;
         _swingPoint = swingPoint;
     }
 
     public override void EnterState()
     {
-        _grappleHandler = _controller.GetComponent<GrappleHandler>();
+        InitializeGravity();
+        _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
         {
             Debug.LogError("SwingingState :: GrappleHandler component not found on PlayerController.");
@@ -28,40 +28,39 @@ public class SwingingState : BaseState
         _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
 
         Debug.Log("Entering SwingingState; Yippee!");
-        _controller.Gravity = _controller.FastFallGravity;
+        
         if (!IsSwingValid())
         {
             BaseState nextState = InvalidSwingTransition();
             if (nextState != null)
             {
-                _controller.TransitionToState(nextState);
+                Context.TransitionToState(nextState);
             }
             else
             {
                 Debug.LogError("SwingingState :: No valid next state found after grapple validation. How the hell did you get here?");
             }
         }
-        _swingRestLength = (_controller.transform.position - _swingPoint).magnitude;
-        _controller.RequestedSwing = false;
+        _swingRestLength = (Context.transform.position - _swingPoint).magnitude;
         CalculateInitialTangentialVelocity();
     }
     private bool IsSwingValid()
     {
-        Vector3 initialPlayerPos = _controller.transform.position;
+        Vector3 initialPlayerPos = Context.transform.position;
         float distanceToTarget = Vector3.Distance(initialPlayerPos, _swingPoint);
         if (distanceToTarget > _activeAbility.MaxSwingDistance)
         {
             Debug.LogWarning("GrapplingState :: Grapple target is out of range.");
             return false;
         }
-        return Physics.Raycast(initialPlayerPos, (_swingPoint - initialPlayerPos).normalized, _activeAbility.MaxSwingDistance, _controller.WhatIsSwingable);
+        return Physics.Raycast(initialPlayerPos, (_swingPoint - initialPlayerPos).normalized, _activeAbility.MaxSwingDistance, Context.WhatIsSwingable);
     }
 
     public override BaseState GetNextState()
     {
-        if (_controller.RequestedJump || _controller.HasJumpBuffered)
+        if (Context.RequestedJump || Context.HasJumpBuffered)
         {
-            return new JumpingState(_controller);
+            return new JumpingState(Context);
         }
 
         return null; // Stay in SwingingState
@@ -69,34 +68,34 @@ public class SwingingState : BaseState
 
     private BaseState InvalidSwingTransition()
     {
-        if (_controller.RequestedJump || _controller.HasJumpBuffered)
+        if (Context.RequestedJump || Context.HasJumpBuffered)
         {
-            return new JumpingState(_controller);
+            return new JumpingState(Context);
         }
 
-        if (!_controller.GroundDetector.IsGrounded)
+        if (!Context.GroundDetector.IsGrounded)
         {
-            return new FallingState(_controller);
+            return new FallingState(Context);
         }
         else
         {
-            return new GroundedState(_controller);
+            return new GroundedState(Context);
         }
     }
 
     public override void FixedUpdateState()
     {
-        _controller.ApplyPhysics();
+        Context.ApplyPhysics();
         ApplyPendulumPhysics();
         ApplySwingPlayerInput();
         ApplySwingDamping();
-        _controller.UpdateBuffers();
+        Context.UpdateBuffers();
         BaseState nextState = GetNextState();
         if (nextState != null)
         {
-            _controller.TransitionToState(nextState);
+            Context.TransitionToState(nextState);
         }
-        _controller.SimulateStep();
+        Context.SimulateStep();
     }
 
     public override void UpdateState()
@@ -106,10 +105,10 @@ public class SwingingState : BaseState
 
     private void CalculateInitialTangentialVelocity()
     {
-        Vector3 playerPos = _controller.transform.position;
+        Vector3 playerPos = Context.transform.position;
         Vector3 ropeVec = playerPos - _swingPoint;
 
-        if (ropeVec.magnitude < _controller.Settings.FloatPrecisionThreshold)
+        if (ropeVec.magnitude < Context.Settings.FloatPrecisionThreshold)
         {
             Debug.LogWarning("Rope vector is too small, cannot calculate tangential velocity.");
             return;
@@ -117,17 +116,17 @@ public class SwingingState : BaseState
         Vector3 ropeDir = ropeVec.normalized;
         Vector3 tangentialDir = new Vector3(-ropeDir.y, ropeDir.x, 0);
 
-        Vector3 initialVel = new Vector3(_controller.Velocity.x, _controller.Velocity.y, 0);
+        Vector3 initialVel = new Vector3(Context.Velocity.x, Context.Velocity.y, 0);
         float initialTangentialSpeed = Vector3.Dot(tangentialDir, initialVel);
         Vector3 initialTangentialVel = tangentialDir * initialTangentialSpeed;
 
-        _controller.Velocity.x = initialTangentialVel.x;
-        _controller.Velocity.y = initialTangentialVel.y;
+        Context.Velocity.x = initialTangentialVel.x;
+        Context.Velocity.y = initialTangentialVel.y;
 
     }
     private void ApplySpringRopeSwingConstraints()
     {
-        Vector3 playerPos = _controller.transform.position;
+        Vector3 playerPos = Context.transform.position;
         Vector3 ropeVec = playerPos - _swingPoint;
         float currentLen = ropeVec.magnitude;
         Vector3 direction = ropeVec.normalized;
@@ -136,7 +135,7 @@ public class SwingingState : BaseState
         float lengthDiff = currentLen - targetLen;
 
         Vector3 springForce = Vector3.zero;
-        float springConstant = _controller.SwingAbility.SpringConstant;
+        float springConstant = _activeAbility.SpringConstant;
 
         if (lengthDiff > 0)
         {
@@ -150,24 +149,24 @@ public class SwingingState : BaseState
         Vector3 gravity = Physics.gravity;
         Vector3 totalForce = springForce + gravity;
 
-        _controller.Velocity.x += totalForce.x * Time.fixedDeltaTime;
-        _controller.Velocity.y += totalForce.y * Time.fixedDeltaTime;
+        Context.Velocity.x += totalForce.x * Time.fixedDeltaTime;
+        Context.Velocity.y += totalForce.y * Time.fixedDeltaTime;
     }
 
     private void ApplyPendulumPhysics()
     {
-        Vector3 playerPos = _controller.transform.position;
+        Vector3 playerPos = Context.transform.position;
         Vector3 ropeVec = playerPos - _swingPoint;
         float len = ropeVec.magnitude;
 
-        if (len < _controller.Settings.FloatPrecisionThreshold)
+        if (len < Context.Settings.FloatPrecisionThreshold)
         {
             Debug.LogWarning("Rope length too small for pendulum physics");
             return;
         }
 
         Vector3 direction = ropeVec / len;
-        Vector3 vel = new Vector3(_controller.Velocity.x, _controller.Velocity.y, 0);
+        Vector3 vel = new Vector3(Context.Velocity.x, Context.Velocity.y, 0);
 
         float radialSpeed = Vector3.Dot(vel, direction);
         Vector3 radialVel = direction * radialSpeed;
@@ -177,42 +176,42 @@ public class SwingingState : BaseState
 
         float angle = Mathf.Atan2(ropeVec.x, -ropeVec.y);
         float angularVel = tangentialSpeed / len;
-        float angularAccel = (_controller.Gravity / len) * Mathf.Sin(angle);
+        float angularAccel = (Physics.gravity.y / len) * Mathf.Sin(angle);
 
         angularVel += angularAccel * Time.fixedDeltaTime;
         tangentialSpeed = angularVel * len;
 
         Vector3 newTangentialVel = tangentialDir * tangentialSpeed;
 
-        _controller.Velocity.x = newTangentialVel.x;
-        _controller.Velocity.y = newTangentialVel.y;
+        Context.Velocity.x = newTangentialVel.x;
+        Context.Velocity.y = newTangentialVel.y;
     }
 
     public void ApplySwingPlayerInput()
     {
-        Vector3 playerPos = _controller.transform.position;
+        Vector3 playerPos = Context.transform.position;
         Vector3 ropeVec = playerPos - _swingPoint;
 
         Vector3 ropeDir = ropeVec.normalized;
         Vector3 tangentialDir = new Vector3(-ropeDir.y, ropeDir.x, 0);
 
-        float input = _controller.HorizontalInput * _activeAbility.UserControlForce;
+        float input = Context.HorizontalInput * _activeAbility.UserControlForce;
         Vector3 inputForce = tangentialDir * input;
 
-        _controller.Velocity.x += inputForce.x * Time.fixedDeltaTime;
-        _controller.Velocity.y += inputForce.y * Time.fixedDeltaTime;
+        Context.Velocity.x += inputForce.x * Time.fixedDeltaTime;
+        Context.Velocity.y += inputForce.y * Time.fixedDeltaTime;
     }
 
     private void ApplySwingDamping()
     {
-        Vector3 ropeVec = _controller.transform.position - _swingPoint;
+        Vector3 ropeVec = Context.transform.position - _swingPoint;
         float ropeLen = ropeVec.magnitude;
 
-        if (ropeLen > _controller.Settings.FloatPrecisionThreshold)
+        if (ropeLen > Context.Settings.FloatPrecisionThreshold)
         {
             Vector3 ropeDir = ropeVec / ropeLen;
 
-            Vector3 vel = new Vector3(_controller.Velocity.x, _controller.Velocity.y, 0);
+            Vector3 vel = new Vector3(Context.Velocity.x, Context.Velocity.y, 0);
             float radialVel = Vector3.Dot(vel, ropeDir);
             Vector3 tangentialVel = vel - ropeDir * radialVel;
 
@@ -222,14 +221,14 @@ public class SwingingState : BaseState
             Vector3 dampedTangential = tangentialVel * dampingFactor;
             Vector3 finalVel = dampedTangential + ropeDir * radialVel;
 
-            _controller.Velocity.x = finalVel.x;
-            _controller.Velocity.y = finalVel.y;
+            Context.Velocity.x = finalVel.x;
+            Context.Velocity.y = finalVel.y;
         }
     }
     private void HandleGrappleRequest(GrappleAbilitySO ability, Vector3 grapplePoint)
     {
-        BaseState nextState = new GrapplingState(_controller, ability, grapplePoint);
-        _controller.TransitionToState(nextState);
+        BaseState nextState = new GrapplingState(Context, ability, grapplePoint);
+        Context.TransitionToState(nextState);
     }
 
     public override void ExitState() 

@@ -10,7 +10,10 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     [SerializeField] private float _skinWidth = 0.02f; // Default skin width
     [SerializeField] private Vector3 _point1 = new Vector3(0f, 0.5f, 0f);
     [SerializeField] private Vector3 _point2 = new Vector3(0f, -0.5f, 0f);
-    [SerializeField] private float _radius = 0.5f;
+    [SerializeField] private float _capsuleRadius = 0.5f;
+    [SerializeField] private float _sphereRadius = 0.6812f;
+    private TongueTransformHandler _tongueTransformHandler;
+    private bool _isTransformed = false;
 
     public event Action OnCollisionDetected;
 
@@ -24,8 +27,35 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
         {
             Debug.LogWarning($"GlobalPhysicsSettings not assigned! Using default skin width of {_skinWidth}");
         }
-        _radius -= _skinWidth; // Adjust radius to account for skin width
+        _capsuleRadius -= _skinWidth; // Adjust radius to account for skin width
     }
+
+    private void Start()
+    {
+        _tongueTransformHandler = GetComponent<TongueTransformHandler>();
+        if (_tongueTransformHandler == null)
+        {
+            Debug.LogWarning("TongueTransformHandler component not found on PlayerController.");
+            return;
+        }
+    }
+
+    private void OnEnable()
+    {
+        if (_tongueTransformHandler != null)
+        {
+            _tongueTransformHandler.OnTransformStateChanged += HandleTransformStateChange;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (_tongueTransformHandler != null)
+        {
+            _tongueTransformHandler.OnTransformStateChanged -= HandleTransformStateChange;
+        }
+    }
+
 
     //TODO: Check if magnitude needs to be calculated before projection
     private Vector3 ProjectAndScale(Vector3 displacement, Vector3 normal)
@@ -59,7 +89,19 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
         Vector3 direction = displacement.normalized;
         RaycastHit hit;
 
-        if (Physics.CapsuleCast(origin + _point1, origin + _point2, _radius, direction, out hit, distance, _layer))
+        bool hasHit = false;
+        if(_isTransformed)
+        {
+            // If transformed, use a sphere cast
+            hasHit = Physics.SphereCast(origin, _sphereRadius, direction, out hit, distance, _layer);
+        }
+        else
+        {
+            // Use capsule cast for normal character state
+            hasHit = Physics.CapsuleCast(origin + _point1, origin + _point2, _capsuleRadius, direction, out hit, distance, _layer);
+        }
+
+        if (hasHit)
         {
             OnCollisionDetected?.Invoke();
             Vector3 snapToSurface = direction * Mathf.Max(0, hit.distance - _skinWidth);
@@ -92,5 +134,10 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
 
         // If no collision was detected, return the original displacement
         return displacement;
+    }
+
+    private void HandleTransformStateChange(TongueTransformEventArgs args)
+    {
+        _isTransformed = args.IsTransformed;
     }
 }

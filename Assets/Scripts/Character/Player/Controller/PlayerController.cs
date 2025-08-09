@@ -7,8 +7,6 @@ public class PlayerController : StateMachine
     [Header("State Machine Context")]
     public JumpActionSO JumpAction;
     public MoveActionSO MoveAction;
-    public GrappleAbilitySO GrappleAbility;
-    public SwingAbilitySO SwingAbility;
     public PlayerTimeSettingsSO TimeSettings;
     public GlobalPhysicsSettingsSO Settings;
     [SerializeField] private bool _usePrecisionMovement = false;
@@ -21,14 +19,13 @@ public class PlayerController : StateMachine
     public bool HasCoyoteBuffered = false;
     public bool HasJumpBuffered = false;
     public bool RequestedGrapple = false;
-    public bool RequestedSwing = false;
+
 
     // Buffer Timers
     private float _elapsedJumpBufferTime = 0f;
     private float _elapsedCoyoteTime = 0f;
 
     // Gravity Fields
-    public float Gravity;
     public float JumpGravity;
     public float FastFallGravity;
     public float ConstantGravityLateralDistance;
@@ -103,27 +100,27 @@ public class PlayerController : StateMachine
         }
     }
 
-    public void ApplyVerticalMovement()
+    public void ApplyVerticalMovement(float gravity)
     {
-        Velocity.y += Gravity * Time.fixedDeltaTime;
+        Velocity.y += gravity * Time.fixedDeltaTime;
     }
 
-    public void ApplyPrecisionMovement()
+    public void ApplyPrecisionMovement(MoveActionSO move)
     {
-        float targetSpeed = HorizontalInput * MoveAction.MaxHorizontalSpeed;
+        float targetSpeed = HorizontalInput * move.MaxHorizontalSpeed;
         Velocity.x = targetSpeed;
     }
 
-    public void ApplyMomentumMovement()
+    public void ApplyMomentumMovement(MoveActionSO move)
     {
-        float horizontalTargetSpeed = HorizontalInput * MoveAction.MaxHorizontalSpeed;
+        float horizontalTargetSpeed = HorizontalInput * move.MaxHorizontalSpeed;
         float currentSpeed = Velocity.x;
 
         // Determine if player is counter-strafing
         bool isCounterStrafing = (HorizontalInput > Settings.FloatPrecisionThreshold && currentSpeed < 0)
                                  || (HorizontalInput < -Settings.FloatPrecisionThreshold && currentSpeed > 0);
 
-        float acceleration = isCounterStrafing ? MoveAction.Deceleration : MoveAction.Acceleration;
+        float acceleration = isCounterStrafing ? move.Deceleration : move.Acceleration;
 
         // Calculate intended speed change this frame
         float speedDifference = horizontalTargetSpeed - currentSpeed;
@@ -163,26 +160,26 @@ public class PlayerController : StateMachine
         }
     }
 
-    public void ApplySpeedDecay()
+    public void ApplySpeedDecay(MoveActionSO move)
     {
         float currentSpeed = Mathf.Abs(Velocity.x);
 
-        if (currentSpeed > MoveAction.MaxHorizontalSpeed)
+        if (currentSpeed > move.MaxHorizontalSpeed)
         {
-            float excessSpeed = currentSpeed - MoveAction.MaxHorizontalSpeed;
-            float decayAmt = excessSpeed * MoveAction.SpeedDecayRate * Time.fixedDeltaTime;
+            float excessSpeed = currentSpeed - move.MaxHorizontalSpeed;
+            float decayAmt = excessSpeed * move.SpeedDecayRate * Time.fixedDeltaTime;
 
             if (Velocity.x > 0f)
             {
-                Velocity.x = Mathf.Max(Velocity.x - decayAmt, MoveAction.MaxHorizontalSpeed);
+                Velocity.x = Mathf.Max(Velocity.x - decayAmt, move.MaxHorizontalSpeed);
             }
             else if (Velocity.x < 0f)
             {
-                Velocity.x = Mathf.Min(Velocity.x + decayAmt, -MoveAction.MaxHorizontalSpeed);
+                Velocity.x = Mathf.Min(Velocity.x + decayAmt, -move.MaxHorizontalSpeed);
             }
         }
     }
-    public void ApplyFriction()
+    public void ApplyFriction(MoveActionSO move)
     {
         if (Mathf.Abs(HorizontalInput) < Settings.FloatPrecisionThreshold)
         {
@@ -192,7 +189,7 @@ public class PlayerController : StateMachine
             }
             else
             {
-                float delta = MoveAction.GroundFrictionForce * Time.fixedDeltaTime;
+                float delta = move.GroundFrictionForce * Time.fixedDeltaTime;
 
                 if (Velocity.x > 0f)
                 {
@@ -206,9 +203,9 @@ public class PlayerController : StateMachine
         }
     }
 
-    public void ClampVerticalVelocity()
+    public void ClampVerticalVelocity(MoveActionSO move)
     {
-        Velocity.y = Mathf.Clamp(Velocity.y, -MoveAction.MaxVerticalSpeed, MoveAction.MaxVerticalSpeed);
+        Velocity.y = Mathf.Clamp(Velocity.y, -move.MaxVerticalSpeed, move.MaxVerticalSpeed);
     }
 
     public void HandleOverhangPushOff()
@@ -249,60 +246,86 @@ public class PlayerController : StateMachine
         RequestedJump = false;
     }
 
-    public void HandleGroundedMovementLogic()
+    public void HandleGroundedMovementLogic(MoveActionSO move, float gravity)
     {
-        ApplyVerticalMovement();
+        ApplyVerticalMovement(gravity);
 
         if (_usePrecisionMovement)
-            ApplyPrecisionMovement();
+            ApplyPrecisionMovement(move);
         else
         {
-            ApplyMomentumMovement();
-            ApplySpeedDecay();
-            ApplyFriction();
+            ApplyMomentumMovement(move);
+            ApplySpeedDecay(move);
+            ApplyFriction(move);
         }
 
-        ClampVerticalVelocity();
+        ClampVerticalVelocity(move);
         HandleOverhangPushOff();
     }
 
-    public void HandleAirMovementLogic()
+    public void HandleAirMovementLogic(MoveActionSO move, float gravity)
     {
-        ApplyVerticalMovement();
+        ApplyVerticalMovement(gravity);
 
         if (_usePrecisionMovement)
-            ApplyPrecisionMovement();
+            ApplyPrecisionMovement(move);
         else
         {
-            ApplyMomentumMovement();
-            ApplyFriction();
+            ApplyMomentumMovement(move);
+            ApplyFriction(move);
         }
 
-        ClampVerticalVelocity();
+        ClampVerticalVelocity(move);
         HandleOverhangPushOff();
     }
 
-    public void HandleFrictionlessMovementLogic()
+    public void HandleFrictionlessMovementLogic(MoveActionSO move, float gravity)
     {
-        ApplyVerticalMovement();
+        ApplyVerticalMovement(gravity);
 
         if (_usePrecisionMovement)
-            ApplyPrecisionMovement();
+            ApplyPrecisionMovement(move);
         else
         {
-            ApplyMomentumMovement();
+            ApplyMomentumMovement(move);
         }
 
-        ClampVerticalVelocity();
+        ClampVerticalVelocity(move);
         HandleOverhangPushOff();
     }
 
-    
+    public float CalculateGravityLateralDistance(MoveActionSO move, JumpActionSO jump)
+    {
+        float constantGravityLateralDistance = (2 * jump.MaxJumpLateralDistance * Mathf.Sqrt(jump.FastFallMultiplier)) / (1 + Mathf.Sqrt(jump.FastFallMultiplier));
+        return constantGravityLateralDistance;
+    }
+
+    public float CalculateJumpGravity(MoveActionSO move, JumpActionSO jump)
+    {
+        float constantGravityLateralDistance = CalculateGravityLateralDistance(move, jump);
+        float jumpGravity = (-2f * jump.MaxJumpHeight * Mathf.Pow(move.MaxHorizontalSpeed, 2.0f)) / (Mathf.Pow((constantGravityLateralDistance / 2.0f), 2.0f));
+        return jumpGravity;
+    }
+
+    public float CalculateFastFallGravity(MoveActionSO move, JumpActionSO jump)
+    {
+        float jumpGravity = CalculateJumpGravity(move, jump);
+        float fastFallGravity = jumpGravity * jump.FastFallMultiplier;
+        return fastFallGravity;
+    }
+
+    public float CalculateInitialJumpSpeed(MoveActionSO move, JumpActionSO jump)
+    {
+        float constantGravityLateralDistance = CalculateGravityLateralDistance(move, jump);
+        float initialJumpSpeed = (2.0f * jump.MaxJumpHeight * move.MaxHorizontalSpeed) / (constantGravityLateralDistance / 2.0f);
+        return initialJumpSpeed;
+    }
+
+
     private void Awake()
     {
-        ConstantGravityLateralDistance = (2 * JumpAction.MaxJumpLateralDistance * Mathf.Sqrt(JumpAction.FastFallMultiplier)) / (1 + Mathf.Sqrt(JumpAction.FastFallMultiplier));
-        JumpGravity = (-2f * JumpAction.MaxJumpHeight * Mathf.Pow(MoveAction.MaxHorizontalSpeed, 2.0f)) / (Mathf.Pow((ConstantGravityLateralDistance / 2.0f), 2.0f));
-        FastFallGravity = JumpGravity * JumpAction.FastFallMultiplier;
+        JumpGravity = CalculateJumpGravity(MoveAction, JumpAction);
+        FastFallGravity = CalculateFastFallGravity(MoveAction, JumpAction);
         Vector3 gravityVector = new Vector3(0f, FastFallGravity, 0f);
         PhysicsManager.Instance.SetGravity(gravityVector);
 
@@ -318,7 +341,6 @@ public class PlayerController : StateMachine
         _pushOff = GetComponent<PushOffOverhang>();
         _collider = GetComponent<CollideSlideCharacterCollisionResolver>();
         _inputHandler = GetComponent<PlayerInputHandler>();
-        GrappleAbility = GetComponent<GrappleHandler>().ActiveAbility;
         WhatIsGrappable = GetComponent<GrappleHandler>().WhatIsGrappable;
 
         _rigidbody.isKinematic = true;

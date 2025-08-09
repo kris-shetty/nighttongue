@@ -7,7 +7,7 @@ public class SwingHandler : MonoBehaviour
     private TongueController _tongueController;
     private PlayerController _playerController;
     private PlayerInputHandler _inputHandler;
-    public SwingAbilitySO ActiveAbility;
+    private SwingAbilitySO _activeAbility;
     private float _swingTimer = 0f;
     private bool _isSwingingOnCooldown = false;
     public LayerMask WhatIsSwingable;
@@ -17,39 +17,39 @@ public class SwingHandler : MonoBehaviour
     public event Action<SwingAbilitySO, Vector3> OnSwingRequested;
     public void ToggleSwing(SwingAbilitySO ability)
     {
-        ActiveAbility = ability;
+        _activeAbility = ability;
 
         if (_swingTimer > 0f)
             return;
 
-        _currentCooldownDuration = ActiveAbility.Cooldown;
+        _currentCooldownDuration = _activeAbility.Cooldown;
         _isSwingingOnCooldown = true;
 
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, _tongueController.Direction, out hit, ActiveAbility.MaxSwingDistance, WhatIsSwingable))
+        if (Physics.Raycast(transform.position, _tongueController.Direction, out hit, _activeAbility.MaxSwingDistance, WhatIsSwingable))
         {
             _swingPoint = hit.point;
             Debug.DrawLine(transform.position, _swingPoint, Color.green, 2f);
-            _inputHandler.FreezeInput(ActiveAbility.DelayTime);
-            Invoke(nameof(ExecuteSwing), ActiveAbility.DelayTime);
+            _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            Invoke(nameof(ExecuteSwing), _activeAbility.DelayTime);
         }
         else
         {
-            _swingPoint = transform.position + _tongueController.Direction * ActiveAbility.MaxSwingDistance;
+            _swingPoint = transform.position + _tongueController.Direction * _activeAbility.MaxSwingDistance;
             Debug.DrawLine(transform.position, _swingPoint, Color.red, 2f);
-            _inputHandler.FreezeInput(ActiveAbility.DelayTime);
-            Invoke(nameof(UntoggleSwing), ActiveAbility.DelayTime);
+            _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            Invoke(nameof(UntoggleSwing), _activeAbility.DelayTime);
         }
     }
 
     private void ExecuteSwing()
     {
-        OnSwingRequested?.Invoke(ActiveAbility, _swingPoint);
+        OnSwingRequested?.Invoke(_activeAbility, _swingPoint);
     }
 
     public void UntoggleSwing()
     {
-        _playerController.RequestedSwing = false;
+
     }
 
     private void Update()

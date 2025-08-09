@@ -6,7 +6,7 @@ public class GrappleHandler : MonoBehaviour
     private GameObject _tongue;
     private TongueController _tongueController;
     private PlayerController _playerController;
-    public GrappleAbilitySO ActiveAbility;
+    private GrappleAbilitySO _activeAbility;
     private float _grappleTimer = 0f;
     private bool _isGrapplingOnCooldown = false;
     public LayerMask WhatIsGrappable;
@@ -18,37 +18,37 @@ public class GrappleHandler : MonoBehaviour
 
     public void ToggleGrapple(GrappleAbilitySO ability)
     {
-        ActiveAbility = ability;
+        _activeAbility = ability;
 
         Debug.Log("Is this stupid thing working?");
 
         if (_grappleTimer > 0f)
             return;
 
-        _currentCooldownDuration = ActiveAbility.Cooldown;
+        _currentCooldownDuration = _activeAbility.Cooldown;
         _isGrapplingOnCooldown = true;
 
         RaycastHit hit;
-        if(Physics.Raycast(transform.position, _tongueController.Direction, out hit, ActiveAbility.MaxGrappleDistance, WhatIsGrappable))
+        if(Physics.Raycast(transform.position, _tongueController.Direction, out hit, _activeAbility.MaxGrappleDistance, WhatIsGrappable))
         {
             _grapplePoint = hit.point;
             Debug.DrawLine(transform.position, _grapplePoint, Color.cyan, 2f);
-            _inputHandler.FreezeInput(ActiveAbility.DelayTime);
-            Invoke(nameof(ExecuteGrapple), ActiveAbility.DelayTime);
+            _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            Invoke(nameof(ExecuteGrapple), _activeAbility.DelayTime);
         }
         else
         {
-            _grapplePoint = transform.position + _tongueController.Direction * ActiveAbility.MaxGrappleDistance;
+            _grapplePoint = transform.position + _tongueController.Direction * _activeAbility.MaxGrappleDistance;
             Debug.DrawLine(transform.position, _grapplePoint, Color.red, 2f);
-            _inputHandler.FreezeInput(ActiveAbility.DelayTime);
-            Invoke(nameof(UntoggleGrapple), ActiveAbility.DelayTime);
+            _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            Invoke(nameof(UntoggleGrapple), _activeAbility.DelayTime);
         }
         
     }
 
     private void ExecuteGrapple()
     {
-        OnGrappleRequested?.Invoke(ActiveAbility, _grapplePoint);
+        OnGrappleRequested?.Invoke(_activeAbility, _grapplePoint);
     }
 
     public void UntoggleGrapple()

@@ -198,6 +198,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Transform"",
+                    ""type"": ""Button"",
+                    ""id"": ""4c9b5e7f-6893-4359-8cf1-58af7949c012"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -605,6 +614,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Swing"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8ff3df3f-6c28-4996-be98-a0b386c5160c"",
+                    ""path"": ""<Keyboard>/#(Q)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Transform"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1204,6 +1224,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_SuctionThrow = m_Player.FindAction("SuctionThrow", throwIfNotFound: true);
         m_Player_Grapple = m_Player.FindAction("Grapple", throwIfNotFound: true);
         m_Player_Swing = m_Player.FindAction("Swing", throwIfNotFound: true);
+        m_Player_Transform = m_Player.FindAction("Transform", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1309,6 +1330,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SuctionThrow;
     private readonly InputAction m_Player_Grapple;
     private readonly InputAction m_Player_Swing;
+    private readonly InputAction m_Player_Transform;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1368,6 +1390,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/Swing".
         /// </summary>
         public InputAction @Swing => m_Wrapper.m_Player_Swing;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Transform".
+        /// </summary>
+        public InputAction @Transform => m_Wrapper.m_Player_Transform;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1430,6 +1456,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Swing.started += instance.OnSwing;
             @Swing.performed += instance.OnSwing;
             @Swing.canceled += instance.OnSwing;
+            @Transform.started += instance.OnTransform;
+            @Transform.performed += instance.OnTransform;
+            @Transform.canceled += instance.OnTransform;
         }
 
         /// <summary>
@@ -1477,6 +1506,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Swing.started -= instance.OnSwing;
             @Swing.performed -= instance.OnSwing;
             @Swing.canceled -= instance.OnSwing;
+            @Transform.started -= instance.OnTransform;
+            @Transform.performed -= instance.OnTransform;
+            @Transform.canceled -= instance.OnTransform;
         }
 
         /// <summary>
@@ -1861,6 +1893,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSwing(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Transform" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTransform(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

@@ -1,9 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class SceneManager : MonoBehaviour
+public class LevelManager : MonoBehaviour
 {
-    public static SceneManager Instance { get; private set; }
+    public static LevelManager Instance { get; private set; }
 
     public void RestartScene()
     {

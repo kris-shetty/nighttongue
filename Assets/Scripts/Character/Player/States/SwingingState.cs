@@ -16,9 +16,8 @@ public class SwingingState : PlayerState
         _swingPoint = swingPoint;
     }
 
-    public override void EnterState()
+    protected override void OnEnter()
     {
-        InitializeGravity();
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
         {
@@ -231,7 +230,7 @@ public class SwingingState : PlayerState
         Context.TransitionToState(nextState);
     }
 
-    public override void ExitState() 
+    protected override void OnExit() 
     {
         if (_grappleHandler != null)
         {

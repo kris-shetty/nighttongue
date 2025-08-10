@@ -52,10 +52,9 @@ public class JumpingState : PlayerState
         return null;
     }
 
-    public override void EnterState()
+    protected override void OnEnter()
     {
         _initialJumpSpeed = Context.CalculateInitialJumpSpeed(ActiveMoveAction, ActiveJumpAction);
-        InitializeGravity();
 
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
@@ -104,7 +103,7 @@ public class JumpingState : PlayerState
         Context.SimulateStep();
     }
 
-    public override void ExitState() 
+    protected override void OnExit() 
     {
         if (_grappleHandler != null)
         {

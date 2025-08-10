@@ -19,10 +19,8 @@ public class GroundedState : PlayerState
         dynamicJumpAction = jump;
     }
 
-    public override void EnterState()
+    protected override void OnEnter()
     {
-        InitializeGravity();
-
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler != null)
         {
@@ -84,7 +82,7 @@ public class GroundedState : PlayerState
         Context.SimulateStep();
     }
 
-    public override void ExitState()
+    protected override void OnExit()
     {
         if (_grappleHandler != null)
         {

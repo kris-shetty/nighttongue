@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public abstract class PlayerState : BaseState
@@ -12,6 +13,19 @@ public abstract class PlayerState : BaseState
 
     protected float Gravity;
 
+    public sealed override void EnterState()
+    {
+        InitializeGravity();
+        OnEnter();
+    }
+
+    public sealed override void ExitState()
+    {
+        OnExit();
+    }
+
+    protected abstract void OnEnter();
+    protected abstract void OnExit();
     protected virtual void InitializeGravity()
     {
         Gravity = Context.CalculateFastFallGravity(ActiveMoveAction, ActiveJumpAction);

@@ -5,7 +5,6 @@ public class GrapplingState : PlayerState
     private float _initialVerticalSpeed;
     private float _initialHorizontalSpeed;
     private float _jumpGravity;
-    private float _fastFallGravity;
     private Vector3 _grapplePoint;
     private Vector3 _initialPlayerPos;
     private GrappleAbilitySO _activeAbility;
@@ -64,7 +63,6 @@ public class GrapplingState : PlayerState
     protected override void InitializeGravity()
     {
         _jumpGravity = Context.CalculateJumpGravity(ActiveMoveAction, ActiveJumpAction);
-        _fastFallGravity = Context.CalculateFastFallGravity(ActiveMoveAction, ActiveJumpAction);
         Gravity = _jumpGravity;
     }
 
@@ -87,10 +85,8 @@ public class GrapplingState : PlayerState
         return Physics.Raycast(_initialPlayerPos, (_grapplePoint - _initialPlayerPos).normalized, _activeAbility.MaxGrappleDistance, Context.WhatIsGrappable);
     }
 
-    public override void EnterState()
+    protected override void OnEnter()
     {
-        InitializeGravity();
-
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
         {
@@ -157,7 +153,7 @@ public class GrapplingState : PlayerState
         Context.TransitionToState(nextState);
     }
 
-    public override void ExitState()
+    protected override void OnExit()
     {
         if (Context != null)
         {

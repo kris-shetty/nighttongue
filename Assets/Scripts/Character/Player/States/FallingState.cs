@@ -19,9 +19,8 @@ public class FallingState : PlayerState
         dynamicJumpAction = jump;
     }
 
-    public override void EnterState()
+    protected override void OnEnter()
     { 
-        InitializeGravity();
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if(_grappleHandler == null )
         {
@@ -78,7 +77,7 @@ public class FallingState : PlayerState
         return null; // Stay in FallingState
     }
 
-    public override void ExitState() 
+    protected override void OnExit() 
     {
         if (_grappleHandler != null)
         {

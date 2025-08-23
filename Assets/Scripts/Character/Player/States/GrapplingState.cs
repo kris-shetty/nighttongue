@@ -14,21 +14,14 @@ public class GrapplingState : PlayerState
     private float _grappleIgnoreDuration = 0.05f;
 
     private SwingHandler _swingHandler;
+    private TongueController _tongueController;
 
     public GrapplingState(PlayerController controller, GrappleAbilitySO grappleAbility, Vector3 grapplePoint)
     {
-        Context = controller;
-        
-        _collider = Context.GetComponent<CollideSlideCharacterCollisionResolver>();
-        if (_collider == null)
-        {
-            Debug.LogError("GrapplingState :: CollideSlideCharacterCollisionResolver component not found on PlayerController.");
-        }
-        
-
+        Context = controller;      
         _grapplePoint = grapplePoint;
         _initialPlayerPos = Context.transform.position;
-        _grappleIgnoreDuration = Context.Settings.GrappleIgnoreDuration;
+        _grappleIgnoreDuration = Context.Settings.GrappleIgnoreDuration;   
         _activeAbility = grappleAbility;
     }
 
@@ -87,6 +80,12 @@ public class GrapplingState : PlayerState
 
     protected override void OnEnter()
     {
+        _collider = Context.GetComponent<CollideSlideCharacterCollisionResolver>();
+        if (_collider == null)
+        {
+            Debug.LogError("GrapplingState :: CollideSlideCharacterCollisionResolver component not found on PlayerController.");
+        }
+
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
         {
@@ -94,6 +93,21 @@ public class GrapplingState : PlayerState
             return;
         }
         _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
+
+        GameObject tongue = Context.transform.Find("Tongue").gameObject;
+        if (tongue == null)
+        {
+            Debug.LogError("GrappleHandler: Tongue GameObject not found. Please ensure it is attached as a child to this GameObject.");
+        }
+        else
+        {
+            _tongueController = tongue.GetComponent<TongueController>();
+            if (_tongueController == null)
+            {
+                Debug.LogError("GrappleHandler :: TongueController component not found on the Tongue GameObject.");
+            }
+            _tongueController.AttachTongue(_grapplePoint);
+        }
 
         _swingHandler = Context.GetComponent<SwingHandler>();
         if (_swingHandler == null)
@@ -168,6 +182,11 @@ public class GrapplingState : PlayerState
         if (_swingHandler != null)
         {
             _swingHandler.OnSwingRequested -= HandleSwingRequest;
+        }
+
+        if (_tongueController != null)
+        {
+            _tongueController.AimTongue();
         }
     }
 

@@ -34,6 +34,7 @@ public class GrappleHandler : MonoBehaviour
             _grapplePoint = hit.point;
             Debug.DrawLine(transform.position, _grapplePoint, Color.cyan, 2f);
             _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            _tongueController.ExtendTongue(_grapplePoint, _activeAbility.DelayTime);
             Invoke(nameof(ExecuteGrapple), _activeAbility.DelayTime);
         }
         else

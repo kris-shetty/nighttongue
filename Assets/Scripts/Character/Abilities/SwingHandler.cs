@@ -31,6 +31,7 @@ public class SwingHandler : MonoBehaviour
             _swingPoint = hit.point;
             Debug.DrawLine(transform.position, _swingPoint, Color.green, 2f);
             _inputHandler.FreezeInput(_activeAbility.DelayTime);
+            _tongueController.ExtendTongue(_swingPoint, _activeAbility.DelayTime);
             Invoke(nameof(ExecuteSwing), _activeAbility.DelayTime);
         }
         else

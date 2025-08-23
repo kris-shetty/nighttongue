@@ -8,6 +8,7 @@ public class SwingingState : PlayerState
 
     private GrappleHandler _grappleHandler;
     private SwingHandler _swingHandler;
+    private TongueController _tongueController;
 
     public SwingingState(PlayerController controller, SwingAbilitySO swingAbility, Vector3 swingPoint)
     {
@@ -26,6 +27,21 @@ public class SwingingState : PlayerState
         }
         _grappleHandler.OnGrappleRequested += HandleGrappleRequest;
 
+        GameObject tongue = Context.transform.Find("Tongue").gameObject;
+        if (tongue == null)
+        {
+            Debug.LogError("GrappleHandler: Tongue GameObject not found. Please ensure it is attached as a child to this GameObject.");
+        }
+        else
+        {
+            _tongueController = tongue.GetComponent<TongueController>();
+            if (_tongueController == null)
+            {
+                Debug.LogError("GrappleHandler :: TongueController component not found on the Tongue GameObject.");
+            }
+            _tongueController.AttachTongue(_swingPoint);
+        }
+
         Debug.Log("Entering SwingingState; Yippee!");
         
         if (!IsSwingValid())
@@ -41,6 +57,7 @@ public class SwingingState : PlayerState
             }
         }
         _swingRestLength = (Context.transform.position - _swingPoint).magnitude;
+        
         CalculateInitialTangentialVelocity();
     }
     private bool IsSwingValid()
@@ -235,6 +252,10 @@ public class SwingingState : PlayerState
         if (_grappleHandler != null)
         {
             _grappleHandler.OnGrappleRequested -= HandleGrappleRequest;
+        }
+        if (_tongueController != null)
+        {
+            _tongueController.AimTongue();
         }
     }
 

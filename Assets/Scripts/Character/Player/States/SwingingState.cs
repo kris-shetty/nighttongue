@@ -102,8 +102,8 @@ public class SwingingState : PlayerState
     public override void FixedUpdateState()
     {
         Context.ApplyPhysics();
-        ApplyPendulumPhysics();
         ApplySwingPlayerInput();
+        ApplyPendulumPhysics();
         ApplySwingDamping();
         Context.UpdateBuffers();
         BaseState nextState = GetNextState();
@@ -173,34 +173,36 @@ public class SwingingState : PlayerState
     {
         Vector3 playerPos = Context.transform.position;
         Vector3 ropeVec = playerPos - _swingPoint;
-        float len = ropeVec.magnitude;
+        float currentLen = ropeVec.magnitude;
 
-        if (len < Context.Settings.FloatPrecisionThreshold)
+        if (currentLen < Context.Settings.FloatPrecisionThreshold) return;
+
+        Vector3 ropeDir = ropeVec / currentLen;
+        Vector3 tangentialDir = new Vector3(-ropeDir.y, ropeDir.x, 0);
+        Vector3 velocity = new Vector3(Context.Velocity.x, Context.Velocity.y, 0);
+
+        float radialVel = Vector3.Dot(velocity, ropeDir);
+        if (radialVel > 0) 
         {
-            Debug.LogWarning("Rope length too small for pendulum physics");
-            return;
+            velocity -= ropeDir * radialVel;
         }
 
-        Vector3 direction = ropeVec / len;
-        Vector3 vel = new Vector3(Context.Velocity.x, Context.Velocity.y, 0);
+        velocity += Physics.gravity * Time.fixedDeltaTime;
 
-        float radialSpeed = Vector3.Dot(vel, direction);
-        Vector3 radialVel = direction * radialSpeed;
+        Vector3 nextPos = playerPos + velocity * Time.fixedDeltaTime;
 
-        Vector3 tangentialDir = new Vector3(-direction.y, direction.x, 0);
-        float tangentialSpeed = Vector3.Dot(vel, tangentialDir);
+        Vector3 nextRopeVec = nextPos - _swingPoint;
+        float nextLen = nextRopeVec.magnitude;
 
-        float angle = Mathf.Atan2(ropeVec.x, -ropeVec.y);
-        float angularVel = tangentialSpeed / len;
-        float angularAccel = (Physics.gravity.y / len) * Mathf.Sin(angle);
+        if (nextLen > _swingRestLength)
+        {
+            nextPos = _swingPoint + nextRopeVec.normalized * _swingRestLength;
 
-        angularVel += angularAccel * Time.fixedDeltaTime;
-        tangentialSpeed = angularVel * len;
+            velocity = (nextPos - playerPos) / Time.fixedDeltaTime;
+        }
 
-        Vector3 newTangentialVel = tangentialDir * tangentialSpeed;
-
-        Context.Velocity.x = newTangentialVel.x;
-        Context.Velocity.y = newTangentialVel.y;
+        Context.Velocity.x = velocity.x;
+        Context.Velocity.y = velocity.y;
     }
 
     public void ApplySwingPlayerInput()

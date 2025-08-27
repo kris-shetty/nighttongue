@@ -2258,6 +2258,7 @@ MonoBehaviour:
   _aimPlaneMask:
     serializedVersion: 2
     m_Bits: 128
+  Settings: {fileID: 11400000, guid: 2651186c934be8e49b833a92e841cb46, type: 2}
   TongueLength: 2
   EndPoint: {x: 0, y: 0, z: 0}
   Direction: {x: 0, y: 0, z: 0}
@@ -2467,7 +2468,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 0f6e02ef596bf244cba774929a75c00b, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -5439,7 +5440,7 @@ Transform:
   m_GameObject: {fileID: 1983523195}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -35, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

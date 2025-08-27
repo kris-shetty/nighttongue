@@ -37,5 +37,10 @@ public class LevelManager : MonoBehaviour
         {
             RestartScene();
         }
+
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            Application.Quit();
+        }
     }
 }

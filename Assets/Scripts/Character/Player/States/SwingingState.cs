@@ -261,7 +261,6 @@ public class SwingingState : PlayerState
         }
     }
 
-
     public override void OnTriggerEnter(Collider other) { }
     public override void OnTriggerStay(Collider other) { }
     public override void OnTriggerExit(Collider other) { }

@@ -1,8 +1,8 @@
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.InputSystem.XR;
+using System.Collections.Generic;
 
-public class PlayerController : StateMachine
+public class PlayerController : StateMachine, IForceReceiver
 {
     [Header("State Machine Context")]
     public JumpActionSO JumpAction;
@@ -44,6 +44,8 @@ public class PlayerController : StateMachine
     private CollideSlideCharacterCollisionResolver _collider;
     private PushOffOverhang _pushOff;
     private Rigidbody _rigidbody;
+
+    private readonly List<IForceSource> activeForces = new ();
 
     private void HandleJumpRequested()
     {
@@ -321,6 +323,37 @@ public class PlayerController : StateMachine
         return initialJumpSpeed;
     }
 
+    public void RegisterForceSource(IForceSource source)
+    {
+        if (!activeForces.Contains(source))
+        {
+            activeForces.Add(source);
+        }
+    }
+
+    public void UnregisterForceSource(IForceSource source)
+    {
+        if (activeForces.Contains(source))
+        {
+            activeForces.Remove(source);
+        }
+    }
+
+    private Vector3 GetTotalExternalForce()
+    {
+        Vector3 totalForce = Vector3.zero;
+        foreach (var source in activeForces)
+        {
+            totalForce += source.GetForce();
+        }
+        return totalForce;
+    }
+
+    public void ApplyExternalForces()
+    {
+        Vector3 totalForce = GetTotalExternalForce();
+        Velocity += (float2) new Vector2(totalForce.x, totalForce.y) * Time.fixedDeltaTime;
+    }
 
     private void Awake()
     {

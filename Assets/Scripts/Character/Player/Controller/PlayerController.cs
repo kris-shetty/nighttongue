@@ -7,6 +7,7 @@ public class PlayerController : StateMachine, IForceReceiver
     [Header("State Machine Context")]
     public JumpActionSO JumpAction;
     public MoveActionSO MoveAction;
+    public StateMultiplierSO StateMultiplier;
     public PlayerTimeSettingsSO TimeSettings;
     public GlobalPhysicsSettingsSO Settings;
     [SerializeField] private bool _usePrecisionMovement = false;

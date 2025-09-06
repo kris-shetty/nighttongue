@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "Wind Volume", menuName = "Level Elements/Wind Volume")]
+[CreateAssetMenu(fileName = "Wind Volume", menuName = "Level Elements/Wind/Wind Volume")]
 public class WindVolumeSO : ScriptableObject
 {
     public Vector3 Direction;

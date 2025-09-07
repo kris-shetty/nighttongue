@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+using UnityEditor.SearchService;
 using UnityEngine;
 
 public class SwingingState : PlayerState
@@ -15,10 +17,13 @@ public class SwingingState : PlayerState
         Context = controller;
         _activeAbility = swingAbility;
         _swingPoint = swingPoint;
-    }
 
+    }
+   
     protected override void OnEnter()
     {
+        Context.GetTotalExternalForce();
+
         _grappleHandler = Context.GetComponent<GrappleHandler>();
         if (_grappleHandler == null)
         {
@@ -78,7 +83,6 @@ public class SwingingState : PlayerState
         {
             return new JumpingState(Context);
         }
-
         return null; // Stay in SwingingState
     }
 
@@ -103,6 +107,7 @@ public class SwingingState : PlayerState
     {
         Context.ApplyPhysics();
         ApplySwingPlayerInput();
+        ApplyWind();
         ApplyPendulumPhysics();
         ApplySwingDamping();
         Context.UpdateBuffers();
@@ -243,6 +248,14 @@ public class SwingingState : PlayerState
             Context.Velocity.y = finalVel.y;
         }
     }
+    private void ApplyWind(Vector3 windForceVec = default(Vector3))
+    {
+       Vector3 vec = Context.GetTotalExternalForce();
+        //apply force 
+        Context.Velocity.x += vec[0] * Time.fixedDeltaTime;
+        Context.Velocity.y += vec[1] * Time.fixedDeltaTime;
+    }
+
     private void HandleGrappleRequest(GrappleAbilitySO ability, Vector3 grapplePoint)
     {
         BaseState nextState = new GrapplingState(Context, ability, grapplePoint);

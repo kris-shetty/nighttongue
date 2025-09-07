@@ -24,7 +24,7 @@ public class WindVolume : MonoBehaviour, IForceSource
 
     public Vector3 GetForce()
     {
-        return _volume.Direction * _directionSign * _volume.ForceStrength;
+        return _volume.Direction.normalized * _directionSign * _volume.ForceStrength;
     }
 
     private void OnTriggerEnter(Collider other)

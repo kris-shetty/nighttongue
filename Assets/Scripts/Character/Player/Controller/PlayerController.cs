@@ -329,6 +329,7 @@ public class PlayerController : StateMachine, IForceReceiver
         if (!activeForces.Contains(source))
         {
             activeForces.Add(source);
+            Debug.Log("Registered force source: " + source.ToString());
         }
     }
 
@@ -337,10 +338,11 @@ public class PlayerController : StateMachine, IForceReceiver
         if (activeForces.Contains(source))
         {
             activeForces.Remove(source);
+            Debug.Log("Unregistered force source: " + source.ToString());
         }
     }
 
-    private Vector3 GetTotalExternalForce()
+    public Vector3 GetTotalExternalForce()
     {
         Vector3 totalForce = Vector3.zero;
         foreach (var source in activeForces)
@@ -350,11 +352,11 @@ public class PlayerController : StateMachine, IForceReceiver
         return totalForce;
     }
 
-    public void ApplyExternalForces()
-    {
-        Vector3 totalForce = GetTotalExternalForce();
-        Velocity += (float2) new Vector2(totalForce.x, totalForce.y) * Time.fixedDeltaTime;
-    }
+    //public void ApplyExternalForces()
+    //{
+    //    Vector3 totalForce = GetTotalExternalForce();
+    //    Velocity += (float2) new Vector2(totalForce.x, totalForce.y) * Time.fixedDeltaTime;
+    //}
 
     private void Awake()
     {

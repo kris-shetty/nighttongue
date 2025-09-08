@@ -1,4 +1,5 @@
 using UnityEngine;
+using Unity.Mathematics;
 
 public class GroundedState : PlayerState
 {
@@ -73,6 +74,7 @@ public class GroundedState : PlayerState
     {
         Context.ApplyPhysics();
         Context.HandleGroundedMovementLogic(ActiveMoveAction, Gravity);
+        ApplyWindForce();
         Context.UpdateBuffers(); 
         BaseState nextState = GetNextState();
         if (nextState != null)
@@ -80,6 +82,16 @@ public class GroundedState : PlayerState
             Context.TransitionToState(nextState);
         }
         Context.SimulateStep();
+    }
+
+    //2025.9.7ADD
+    public void ApplyWindForce()
+    {
+        Vector3 windforce = Context.GetTotalExternalForce();
+        float weight = Context.StateMultiplier.Grounded;
+        Vector3 finalForce = windforce * weight;
+        float2 windForce2D = new float2(finalForce.x, finalForce.z);
+        Context.Velocity += windForce2D * Time.fixedDeltaTime;
     }
 
     protected override void OnExit()

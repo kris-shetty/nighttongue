@@ -48,9 +48,18 @@ public class GrapplingState : PlayerState
         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         float horizontalDistance = _grapplePoint.x - _initialPlayerPos.x;
         _initialVerticalSpeed = Mathf.Sqrt(-2 * Context.JumpGravity * highestPoint);
+        /*
+         * F = M * A
+         * V = F * T / M
+         * Mass is not included at the time of implementation thus 1 is used
+         */
+        float additionalVerticalSpeed = Context.GetTotalExternalForce().y * Time.fixedDeltaTime / 1;
+        _initialVerticalSpeed += additionalVerticalSpeed;
         float timeUp = Mathf.Sqrt((-2 * highestPoint)/Context.JumpGravity);
         float timeDown = Mathf.Sqrt((-2 * (highestPoint - verticalDistance) / Context.FastFallGravity));
         _initialHorizontalSpeed = horizontalDistance / (timeUp + timeDown);
+        float additionalHorizontalSpeed = Context.GetTotalExternalForce().x * Time.fixedDeltaTime / 1;
+        _initialHorizontalSpeed += additionalHorizontalSpeed;
     }
 
     protected override void InitializeGravity()

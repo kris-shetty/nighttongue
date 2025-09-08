@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class JumpingState : PlayerState
@@ -28,6 +29,12 @@ public class JumpingState : PlayerState
         _jumpGravity = Context.CalculateJumpGravity(ActiveMoveAction, ActiveJumpAction);
         _fastFallGravity = Context.CalculateFastFallGravity(ActiveMoveAction, ActiveJumpAction);
         Gravity = _jumpGravity; 
+    }
+
+    private void ApplyExternalForces()
+    {
+        Vector3 force = Context.GetTotalExternalForce();
+        Context.Velocity += (float2) new Vector2(force.x, force.y) * Time.fixedDeltaTime;
     }
 
     private void ApplyJump()
@@ -86,6 +93,7 @@ public class JumpingState : PlayerState
     public override void FixedUpdateState()
     {
         Context.ApplyPhysics();
+        ApplyExternalForces();
         Context.HandleAirMovementLogic(ActiveMoveAction, Gravity);
         Context.UpdateBuffers();
         // Apply fast fall gravity if jump is not held

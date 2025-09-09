@@ -26,7 +26,6 @@ public class SuctionThrowAbilitySO : AbilitySO
     public override void OnRelease(GameObject user)
     {
         var handler = user.GetComponent<SuctionHandler>();
-        handler?.ThrowHeldObject();
         handler?.OnTongueReleased();
     }
 }

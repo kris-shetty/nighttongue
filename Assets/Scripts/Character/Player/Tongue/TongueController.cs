@@ -111,7 +111,7 @@ public class TongueController : MonoBehaviour
     {
         Debug.Log("TongueController :: Extending tongue.");
         _mode = TongueMode.Extending;
-        Vector3 start = _player.transform.position;
+        Vector3 start = EndPoint;
         Vector3 end = target;
 
         float elapsedTime = 0f;

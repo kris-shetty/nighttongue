@@ -1080,7 +1080,7 @@ GameObject:
   - component: {fileID: 384597596}
   - component: {fileID: 384597602}
   - component: {fileID: 384597601}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: ThrowableObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -6611,13 +6611,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   suctionPoint: {fileID: 109936321}
-  aimPlaneMask:
-    serializedVersion: 2
-    m_Bits: 128
-  aimLine: {fileID: 1207465345}
   suctionObstructionMask:
     serializedVersion: 2
     m_Bits: 64
+  maxRange: 8
+  extendSpeed: 5
+  retractSpeed: 5
+  pickupRadius: 0.35
+  pickupMask:
+    serializedVersion: 2
+    m_Bits: 256
   throwArcRenderer: {fileID: 1419407747}
   arcPoints: 60
   arcTimeStep: 0.05

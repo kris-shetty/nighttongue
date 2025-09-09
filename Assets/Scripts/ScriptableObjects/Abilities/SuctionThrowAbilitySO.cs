@@ -27,5 +27,6 @@ public class SuctionThrowAbilitySO : AbilitySO
     {
         var handler = user.GetComponent<SuctionHandler>();
         handler?.ThrowHeldObject();
+        handler?.OnTongueReleased();
     }
 }

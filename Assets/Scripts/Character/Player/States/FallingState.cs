@@ -1,3 +1,4 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class FallingState : PlayerState
@@ -17,6 +18,12 @@ public class FallingState : PlayerState
         Context = controller;
         dynamicMoveAction = move;
         dynamicJumpAction = jump;
+    }
+
+    private void ApplyExternalForces()
+    {
+        Vector3 force = Context.GetTotalExternalForce();
+        Context.Velocity += (float2)new Vector2(force.x, force.y) * Time.fixedDeltaTime;
     }
 
     protected override void OnEnter()
@@ -51,6 +58,7 @@ public class FallingState : PlayerState
     public override void FixedUpdateState()
     {
         Context.ApplyPhysics();
+        ApplyExternalForces();
         Context.HandleGroundedMovementLogic(ActiveMoveAction, Gravity);
         Context.UpdateBuffers();
         BaseState nextState = GetNextState();

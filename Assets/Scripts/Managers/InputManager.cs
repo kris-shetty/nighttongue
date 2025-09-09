@@ -56,6 +56,7 @@ public class InputManager : MonoBehaviour
 
     private void OnDisable()
     {
+        if (_controls == null) return;
         // Unsubscribe
         _controls.Player.Move.performed -= _onMovePerformed;
         _controls.Player.Move.canceled -= _onMoveCanceled;

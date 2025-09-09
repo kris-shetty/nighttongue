@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfe8091935a3d5e44a9b74b885779d1c, type: 3}
   m_Name: WindVolume
   m_EditorClassIdentifier: 
-  Direction: {x: 1, y: 0, z: 0}
-  FirstHalfCycleTime: 3
-  LastHalfCycleTime: 3
-  ForceStrength: 10
+  Direction: {x: -1, y: 0, z: 0}
+  FirstHalfCycleTime: 100
+  LastHalfCycleTime: 0
+  ForceStrength: 5

@@ -11,9 +11,13 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
     [SerializeField] private Vector3 _point1 = new Vector3(0f, 0.5f, 0f);
     [SerializeField] private Vector3 _point2 = new Vector3(0f, -0.5f, 0f);
     [SerializeField] private float _capsuleRadius = 0.5f;
-    [SerializeField] private float _sphereRadius = 0.6812f;
-    private TongueTransformHandler _tongueTransformHandler;
+    [SerializeField] private float _sphereRadius = 0.5f;
+    [SerializeField] private Vector3 _sphereHeightOffset = new Vector3(0f, -0.5f, 0f); // Height offset when switching to sphere
+    [SerializeField] private TongueTransformHandler _tongueTransformHandler;
     private bool _isTransformed = false;
+
+    // Store the original transform position when switching shapes
+    private Vector3 _positionAdjustment = Vector3.zero;
 
     public event Action OnCollisionDetected;
 
@@ -28,11 +32,15 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
             Debug.LogWarning($"GlobalPhysicsSettings not assigned! Using default skin width of {_skinWidth}");
         }
         _capsuleRadius -= _skinWidth; // Adjust radius to account for skin width
-    }
+        _sphereRadius -= _skinWidth;
 
-    private void Start()
-    {
         _tongueTransformHandler = GetComponent<TongueTransformHandler>();
+
+        if (_tongueTransformHandler != null)
+        {
+            _tongueTransformHandler.OnTransformStateChanged += HandleTransformStateChange;
+        }
+
         if (_tongueTransformHandler == null)
         {
             Debug.LogWarning("TongueTransformHandler component not found on PlayerController.");
@@ -40,15 +48,7 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
         }
     }
 
-    private void OnEnable()
-    {
-        if (_tongueTransformHandler != null)
-        {
-            _tongueTransformHandler.OnTransformStateChanged += HandleTransformStateChange;
-        }
-    }
-
-    private void OnDisable()
+    private void OnDestroy()
     {
         if (_tongueTransformHandler != null)
         {
@@ -56,8 +56,18 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
         }
     }
 
+    // Capsule bottom is the lower end minus radius
+    private float GetCapsuleCenterY()
+    {
+        return (transform.position).y;
+    }
 
-    //TODO: Check if magnitude needs to be calculated before projection
+    // Sphere bottom is center minus radius
+    private float GetSphereCenterY()
+    {
+        return (transform.position + _sphereHeightOffset).y;
+    }
+
     private Vector3 ProjectAndScale(Vector3 displacement, Vector3 normal)
     {
         float magnitude = displacement.magnitude;
@@ -90,10 +100,10 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
         RaycastHit hit;
 
         bool hasHit = false;
-        if(_isTransformed)
+        if (_isTransformed)
         {
             // If transformed, use a sphere cast
-            hasHit = Physics.SphereCast(origin, _sphereRadius, direction, out hit, distance, _layer);
+            hasHit = Physics.SphereCast(origin + _sphereHeightOffset, _sphereRadius, direction, out hit, distance, _layer);
         }
         else
         {
@@ -138,6 +148,7 @@ public class CollideSlideCharacterCollisionResolver : MonoBehaviour
 
     private void HandleTransformStateChange(TongueTransformEventArgs args)
     {
+        bool wasTransformed = _isTransformed;
         _isTransformed = args.IsTransformed;
     }
 }

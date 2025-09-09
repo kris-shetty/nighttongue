@@ -23,6 +23,8 @@ public class FallingState : PlayerState
     private void ApplyExternalForces()
     {
         Vector3 force = Context.GetTotalExternalForce();
+        float weight = Context.StateMultiplier.Airborne;
+        force *= weight;
         Context.Velocity += (float2)new Vector2(force.x, force.y) * Time.fixedDeltaTime;
     }
 

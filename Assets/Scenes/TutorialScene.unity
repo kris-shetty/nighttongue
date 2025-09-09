@@ -6704,6 +6704,8 @@ MonoBehaviour:
   _point2: {x: 0, y: -0.5, z: 0}
   _capsuleRadius: 0.5
   _sphereRadius: 0.6812
+  _sphereHeightOffset: {x: 0, y: -0.3214, z: 0}
+  _tongueTransformHandler: {fileID: 0}
 --- !u!114 &1983523208
 MonoBehaviour:
   m_ObjectHideFlags: 0

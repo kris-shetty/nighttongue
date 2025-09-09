@@ -74,7 +74,7 @@ public class GroundedState : PlayerState
     {
         Context.ApplyPhysics();
         Context.HandleGroundedMovementLogic(ActiveMoveAction, Gravity);
-        ApplyWindForce();
+        ApplyExternalForces();
         Context.UpdateBuffers(); 
         BaseState nextState = GetNextState();
         if (nextState != null)
@@ -85,7 +85,7 @@ public class GroundedState : PlayerState
     }
 
     //2025.9.7ADD
-    public void ApplyWindForce()
+    public void ApplyExternalForces()
     {
         Vector3 windforce = Context.GetTotalExternalForce();
         float weight = Context.StateMultiplier.Grounded;

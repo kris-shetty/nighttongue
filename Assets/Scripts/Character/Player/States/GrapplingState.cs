@@ -5,6 +5,7 @@ public class GrapplingState : PlayerState
     private float _initialVerticalSpeed;
     private float _initialHorizontalSpeed;
     private float _jumpGravity;
+    private float _fastFallGravity;
     private Vector3 _grapplePoint;
     private Vector3 _initialPlayerPos;
     private GrappleAbilitySO _activeAbility;
@@ -47,31 +48,33 @@ public class GrapplingState : PlayerState
         float highestPoint = CalculateVerticalHeight();
         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         float horizontalDistance = _grapplePoint.x - _initialPlayerPos.x;
-        _initialVerticalSpeed = Mathf.Sqrt(-2 * Context.JumpGravity * highestPoint);
-        /*
-         * F = M * A
-         * V = F * T / M
-         * Mass is not included at the time of implementation thus 1 is used
-         */
-        float additionalVerticalSpeed = Context.GetTotalExternalForce().y * Time.fixedDeltaTime / 1;
-        _initialVerticalSpeed += additionalVerticalSpeed;
-        float timeUp = Mathf.Sqrt((-2 * highestPoint)/Context.JumpGravity);
-        float timeDown = Mathf.Sqrt((-2 * (highestPoint - verticalDistance) / Context.FastFallGravity));
+        _initialVerticalSpeed = Mathf.Sqrt(-2 * _jumpGravity * highestPoint);
+        float timeUp = Mathf.Sqrt((-2 * highestPoint)/_jumpGravity);
+        float timeDown = Mathf.Sqrt((-2 * (highestPoint - verticalDistance) / _fastFallGravity));
         _initialHorizontalSpeed = horizontalDistance / (timeUp + timeDown);
-        float additionalHorizontalSpeed = Context.GetTotalExternalForce().x * Time.fixedDeltaTime / 1;
-        _initialHorizontalSpeed += additionalHorizontalSpeed;
+    }
+
+    private void ApplyExternalForces()
+    {
+        Vector3 windForceVec = Context.GetTotalExternalForce();
+        float weight = Context.StateMultiplier.Grappling;
+        windForceVec *= weight;
+        //apply force 
+        Context.Velocity.x += windForceVec[0] * Time.fixedDeltaTime;
+        Context.Velocity.y += windForceVec[1] * Time.fixedDeltaTime;
     }
 
     protected override void InitializeGravity()
     {
         _jumpGravity = Context.CalculateJumpGravity(ActiveMoveAction, ActiveJumpAction);
         Gravity = _jumpGravity;
+        _fastFallGravity = Gravity * ActiveJumpAction.FastFallMultiplier;
     }
 
     private void ApplyGrapple()
     {
-        CalculateJumpVelocity();
         Gravity = Context.CalculateJumpGravity(ActiveMoveAction, ActiveJumpAction);
+        CalculateJumpVelocity();
         Context.Velocity.y = _initialVerticalSpeed;
         Context.Velocity.x = _initialHorizontalSpeed;
     }
@@ -130,6 +133,7 @@ public class GrapplingState : PlayerState
         if (IsGrappleValid())
         {
             ApplyGrapple();
+            ApplyExternalForces();
             Context.RequestedGrapple = false;
         }
         else
@@ -208,8 +212,11 @@ public class GrapplingState : PlayerState
     {
         _grappleEntryTimer += Time.fixedDeltaTime;
 
+        ApplyExternalForces();
+
         Context.ApplyPhysics();
-        if(Context.Velocity.y <= 0f)
+        
+        if (Context.Velocity.y <= 0f)
         {
             Gravity = Context.FastFallGravity;
         }

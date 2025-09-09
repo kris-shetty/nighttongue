@@ -107,7 +107,7 @@ public class SwingingState : PlayerState
     {
         Context.ApplyPhysics();
         ApplySwingPlayerInput();
-        ApplyWind();
+        ApplyExternalForces();
         ApplyPendulumPhysics();
         ApplySwingDamping();
         Context.UpdateBuffers();
@@ -248,12 +248,14 @@ public class SwingingState : PlayerState
             Context.Velocity.y = finalVel.y;
         }
     }
-    private void ApplyWind(Vector3 windForceVec = default(Vector3))
+    private void ApplyExternalForces(Vector3 windForceVec = default(Vector3))
     {
        Vector3 vec = Context.GetTotalExternalForce();
+       float weight = Context.StateMultiplier.Swinging;
+        vec *= weight;
         //apply force 
         Context.Velocity.x += vec[0] * Time.fixedDeltaTime;
-        Context.Velocity.y += vec[1] * Time.fixedDeltaTime;
+       Context.Velocity.y += vec[1] * Time.fixedDeltaTime;
     }
 
     private void HandleGrappleRequest(GrappleAbilitySO ability, Vector3 grapplePoint)

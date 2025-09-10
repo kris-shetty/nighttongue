@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: WindVolume
   m_EditorClassIdentifier: 
   Direction: {x: -1, y: 0, z: 0}
-  FirstHalfCycleTime: 100
-  LastHalfCycleTime: 0
+  FirstHalfCycleTime: 3
+  LastHalfCycleTime: 3
   ForceStrength: 5

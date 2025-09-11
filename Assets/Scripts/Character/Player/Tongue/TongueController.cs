@@ -89,11 +89,15 @@ public class TongueController : MonoBehaviour
     }
     public void ExtendTongue(Vector3 target, float duration)
     {
-        if (_activeRoutine != null)
+        if (_mode == TongueMode.Aim)
         {
-            StopCoroutine(_activeRoutine);
+            if (_activeRoutine != null)
+            {
+                StopCoroutine(_activeRoutine);
+            }
+            _activeRoutine = StartCoroutine(ExtendTongueRoutine(target, duration));
         }
-        _activeRoutine = StartCoroutine(ExtendTongueRoutine(target, duration));
+        
     }
 
     public void AimTongue()

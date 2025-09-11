@@ -31,7 +31,14 @@ public class GrapplingState : PlayerState
         float highestPoint = 0;
    
         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
-        verticalDistance += _activeAbility.OffsetHeight;
+        if (verticalDistance > 0)
+        {
+            verticalDistance += _activeAbility.OvershootHeight;
+        }
+        else
+        {
+            verticalDistance -= _activeAbility.OvershootHeight;
+        }
         if (verticalDistance < 0)
         {
             highestPoint = _activeAbility.OvershootHeight;
@@ -49,9 +56,22 @@ public class GrapplingState : PlayerState
         float highestPoint = CalculateVerticalHeight();
         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         float horizontalDistance = _grapplePoint.x - _initialPlayerPos.x;
-        verticalDistance += _activeAbility.OffsetHeight;
-        horizontalDistance += _activeAbility.OffsetDistance;
-        // verticalDistance += _activeAbility.OffsetDistance;
+        if (verticalDistance > 0)
+        {
+            verticalDistance += _activeAbility.OvershootHeight;
+        }
+        else
+        {
+            verticalDistance -= _activeAbility.OvershootHeight;
+        }
+        if (horizontalDistance > 0)
+        {
+            horizontalDistance += _activeAbility.OffsetDistance;
+        }
+        else
+        {
+            horizontalDistance -= _activeAbility.OffsetDistance;
+        }
         _initialVerticalSpeed = Mathf.Sqrt(-2 * _jumpGravity * highestPoint);
         float timeUp = Mathf.Sqrt((-2 * highestPoint)/_jumpGravity);
         float timeDown = Mathf.Sqrt((-2 * (highestPoint - verticalDistance) / _fastFallGravity));

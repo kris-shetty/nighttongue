@@ -33,11 +33,11 @@ public class GrapplingState : PlayerState
         float verticalDistance = _grapplePoint.y - _initialPlayerPos.y;
         if (verticalDistance > 0)
         {
-            verticalDistance += _activeAbility.OvershootHeight;
+            verticalDistance += _activeAbility.OffsetHeight;
         }
         else
         {
-            verticalDistance -= _activeAbility.OvershootHeight;
+            verticalDistance -= _activeAbility.OffsetHeight;
         }
         if (verticalDistance < 0)
         {
@@ -58,11 +58,11 @@ public class GrapplingState : PlayerState
         float horizontalDistance = _grapplePoint.x - _initialPlayerPos.x;
         if (verticalDistance > 0)
         {
-            verticalDistance += _activeAbility.OvershootHeight;
+            verticalDistance += _activeAbility.OffsetHeight;
         }
         else
         {
-            verticalDistance -= _activeAbility.OvershootHeight;
+            verticalDistance -= _activeAbility.OffsetHeight;
         }
         if (horizontalDistance > 0)
         {

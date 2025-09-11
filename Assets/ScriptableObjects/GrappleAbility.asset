@@ -19,5 +19,5 @@ MonoBehaviour:
   DelayTime: 0.25
   Cooldown: 0.25
   OvershootHeight: 1
-  OffsetHeight: 0.5
-  OffsetDistance: 0.5
+  OffsetHeight: 3
+  OffsetDistance: 3
